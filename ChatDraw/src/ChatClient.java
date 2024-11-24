@@ -20,6 +20,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
@@ -148,7 +149,7 @@ public class ChatClient extends JFrame {
 		contentPane.setLayout(null);
 		topPanel = new JPanel();
 		topPanel.setBounds(0, 0, 360, 70);
-		topPanel.setBackground(new Color(255,207,255));
+		topPanel.setBackground(Color.LIGHT_GRAY);
 		contentPane.add(topPanel);
 	}
 
@@ -264,8 +265,8 @@ public class ChatClient extends JFrame {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
 		        SwingUtilities.invokeLater(() -> {
-		            ImageGallery imageGallery = new ImageGallery();
-		            imageGallery.show();
+		        	ImageGallery imageGallery = new ImageGallery(ChatClient.this); // ChatClient를 전달
+                    imageGallery.show();
 		        });
 		    }
 		});
@@ -403,5 +404,25 @@ public class ChatClient extends JFrame {
 			}
 		}
 	}
+	public void addImageToChat(String imagePath) {
+	    try {
+	        ImageIcon imageIcon = new ImageIcon(imagePath);
+	        Image img = imageIcon.getImage();
+	        Image resizedImg = img.getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+	        ImageIcon resizedIcon = new ImageIcon(resizedImg);
 
+	        JLabel imageLabel = new JLabel(resizedIcon);
+
+	        StyledDocument doc = chatTextArea.getStyledDocument();
+	        SimpleAttributeSet attributes = new SimpleAttributeSet();
+
+	        
+	        doc.insertString(doc.getLength(), "\n", attributes);
+	        chatTextArea.insertComponent(imageLabel);
+
+	        chatTextArea.setCaretPosition(doc.getLength());
+	    } catch (BadLocationException e) {
+	        e.printStackTrace();
+	    }
+	}
 }

@@ -1,15 +1,23 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 public class ImageGallery {
+	private ChatClient chatClient;
 
+	public ImageGallery(ChatClient chatClient) {
+        this.chatClient = chatClient;
+    }
+	
     public void show() {
         JFrame imageFrame = new JFrame("저장된 그림들");
         imageFrame.setSize(600, 450);
+        imageFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         //imageFrame.getContentPane().setBackground(Color.WHITE);
 
         JPanel imagePanel = new JPanel();
@@ -36,18 +44,28 @@ public class ImageGallery {
                         imageLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); // 마우스 커서 변경
 
                         // 클릭 이벤트 추가
-                        imageLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-                            @Override
-                            public void mouseClicked(java.awt.event.MouseEvent e) {
-                                System.out.println("눌림: " + imageFile.getName());
+                        imageLabel.addMouseListener(new MouseAdapter() {
+                            private long lastClickTime = 0;
 
-                                // 선택된 이미지 강조 (노란색 테두리)
-                                for (Component comp : imagePanel.getComponents()) {
-                                    if (comp instanceof JLabel) {
-                                        ((JLabel) comp).setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+                            @Override
+                            public void mouseClicked(MouseEvent e) {
+                                long currentClickTime = System.currentTimeMillis();
+                                
+                                // 더블 클릭을 처리 (두 클릭 사이의 간격이 짧으면 더블 클릭으로 간주)
+                                if (currentClickTime - lastClickTime < 500) {
+                                    // 더블 클릭 시, 이미지를 채팅창에 전송
+                                    chatClient.addImageToChat(imageFile.getAbsolutePath());
+                                    imageFrame.dispose(); // 이미지 갤러리 창 닫기
+                                } else {
+                                    // 한 번 클릭 시, 선택된 이미지를 강조 (노란색 테두리)
+                                    for (Component comp : imagePanel.getComponents()) {
+                                        if (comp instanceof JLabel) {
+                                            ((JLabel) comp).setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+                                        }
                                     }
+                                    imageLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 3));
                                 }
-                                imageLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW, 3));
+                                lastClickTime = currentClickTime;
                             }
                         });
 
