@@ -1,5 +1,3 @@
-package src;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
@@ -19,7 +17,7 @@ public class DrawingApp extends JFrame {
         drawingPanel = new DrawingPanel(testFrame);
         setTitle("그림판");
         setSize(600, 600);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         initUI();
@@ -57,7 +55,7 @@ public class DrawingApp extends JFrame {
         JButton pencilButton = new JButton("");
         try {
             // pencil.png를 아이콘으로 설정
-            ImageIcon pencilIcon = new ImageIcon("assets/pencil.png");
+            ImageIcon pencilIcon = new ImageIcon(ChatClient.class.getResource("/images/Pencil.png"));
             Image scaledImage = pencilIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH); // 이미지 크기 조정
             pencilButton.setIcon(new ImageIcon(scaledImage));
         } catch (Exception ex) {
@@ -76,7 +74,7 @@ public class DrawingApp extends JFrame {
         JButton eraserButton = new JButton("");
         
         try {
-            ImageIcon eraserIcon = new ImageIcon("assets/Eraser.png");
+            ImageIcon eraserIcon = new ImageIcon(ChatClient.class.getResource("/images/Eraser.png"));
             Image scaledImage = eraserIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH); // 이미지 크기 조정
             eraserButton.setIcon(new ImageIcon(scaledImage));
         } catch (Exception ex) {
@@ -95,7 +93,7 @@ public class DrawingApp extends JFrame {
         JButton clearButton = new JButton("");
         
         try {
-            ImageIcon resetIcon = new ImageIcon("assets/Reset.png");
+            ImageIcon resetIcon = new ImageIcon(ChatClient.class.getResource("/images/Reset.png"));
             Image scaledImage = resetIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH); // 이미지 크기 조정
             clearButton.setIcon(new ImageIcon(scaledImage));
         } catch (Exception ex) {
@@ -113,7 +111,7 @@ public class DrawingApp extends JFrame {
         JButton stickerButton = new JButton("");
         
         try {
-            ImageIcon stickerIcon = new ImageIcon("assets/Save.png");
+            ImageIcon stickerIcon = new ImageIcon(ChatClient.class.getResource("/images/Save.png"));
             Image scaledImage = stickerIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH); // 이미지 크기 조정
             stickerButton.setIcon(new ImageIcon(scaledImage));
         } catch (Exception ex) {
@@ -130,19 +128,19 @@ public class DrawingApp extends JFrame {
      // 저장된 그림을 보기 위한 버튼
         JButton viewSavedButton = new JButton("");
         
-        try {
-            ImageIcon viewSavedIcon = new ImageIcon("assets/ImageGallery.png");
-            Image scaledImage = viewSavedIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH); // 이미지 크기 조정
-            viewSavedButton.setIcon(new ImageIcon(scaledImage));
-        } catch (Exception ex) {
-        	viewSavedButton.setText("저장"); // 이미지 로드 실패 시 텍스트로 대체
-        }
-        viewSavedButton.setBackground(Color.WHITE);
-        viewSavedButton.addActionListener(e -> {
-            ImageGallery gallery = new ImageGallery();
-            gallery.show(); // 이미지 갤러리 표시
-        });
-        controlPanel.add(viewSavedButton);
+//        try {
+//            ImageIcon viewSavedIcon = new ImageIcon(ChatClient.class.getResource("/images/ImageGallery.png"));
+//            Image scaledImage = viewSavedIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH); // 이미지 크기 조정
+//            viewSavedButton.setIcon(new ImageIcon(scaledImage));
+//        } catch (Exception ex) {
+//        	viewSavedButton.setText("저장"); // 이미지 로드 실패 시 텍스트로 대체
+//        }
+//        viewSavedButton.setBackground(Color.WHITE);
+//        viewSavedButton.addActionListener(e -> {
+//            ImageGallery gallery = new ImageGallery();
+//            gallery.show(); // 이미지 갤러리 표시
+//        });
+//        controlPanel.add(viewSavedButton);
         
         
         

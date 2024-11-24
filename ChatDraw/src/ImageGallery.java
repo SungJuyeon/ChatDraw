@@ -1,5 +1,3 @@
-package src;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -12,9 +10,11 @@ public class ImageGallery {
     public void show() {
         JFrame imageFrame = new JFrame("저장된 그림들");
         imageFrame.setSize(600, 450);
+        //imageFrame.getContentPane().setBackground(Color.WHITE);
 
         JPanel imagePanel = new JPanel();
         imagePanel.setLayout(new GridLayout(0, 3));
+        imagePanel.setBackground(Color.WHITE);
 
         // saved_images 폴더의 이미지들을 로드
         File folder = new File("saved_images");
