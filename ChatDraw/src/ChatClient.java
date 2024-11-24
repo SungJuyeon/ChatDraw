@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -23,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -146,7 +148,7 @@ public class ChatClient extends JFrame {
 		contentPane.setLayout(null);
 		topPanel = new JPanel();
 		topPanel.setBounds(0, 0, 360, 70);
-		topPanel.setBackground(Color.LIGHT_GRAY);
+		topPanel.setBackground(new Color(255,207,255));
 		contentPane.add(topPanel);
 	}
 
@@ -220,22 +222,56 @@ public class ChatClient extends JFrame {
 		
 		// 그림판 열기 버튼
 		JButton drawingBoardButton = new JButton(""); 
-		drawingBoardButton.setIcon(new ImageIcon(ChatClient.class.getResource("/images/icon_palette.png")));
+		ImageIcon originalIcon = new ImageIcon(ChatClient.class.getResource("/images/icon_palette.png"));
+		Image img = originalIcon.getImage();
+		Image resizedImage = img.getScaledInstance(44, 35, Image.SCALE_SMOOTH); // 버튼 크기에 맞게 조정
+		ImageIcon resizedIcon = new ImageIcon(resizedImage);
+		drawingBoardButton.setIcon(resizedIcon);
+
 		drawingBoardButton.setFocusPainted(false);
 		drawingBoardButton.setBorderPainted(false);
-		drawingBoardButton.setBackground(new Color(243, 239, 180));
+		drawingBoardButton.setBackground(Color.white);
 		drawingBoardButton.setFont(new Font("Dialog", Font.BOLD, 18));
-		drawingBoardButton.setBounds(10, 8, 44, 25);
+		drawingBoardButton.setBounds(10, 0, 44, 40);
 		panel.add(drawingBoardButton);
 
 		drawingBoardButton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        SwingUtilities.invokeLater(() -> {
+		            DrawingApp drawingApp = new DrawingApp();
+		            drawingApp.setVisible(true);
+		        });
+		    }
 		});
+		
+		// "저장된 그림 보기" 버튼
+		JButton viewSavedImagesButton = new JButton("");
+		ImageIcon galleryIcon = new ImageIcon(ChatClient.class.getResource("/images/ImageGallery.png"));
+		Image galleryImg = galleryIcon.getImage();
+		Image resizedGalleryImage = galleryImg.getScaledInstance(44, 35, Image.SCALE_SMOOTH);
+		ImageIcon resizedGalleryIcon = new ImageIcon(resizedGalleryImage);
+		viewSavedImagesButton.setIcon(resizedGalleryIcon);
+
+		viewSavedImagesButton.setFocusPainted(false);
+		viewSavedImagesButton.setBorderPainted(false);
+		viewSavedImagesButton.setBackground(Color.white);
+		viewSavedImagesButton.setFont(new Font("Dialog", Font.BOLD, 18));
+		viewSavedImagesButton.setBounds(60, 0, 44, 40); // 위치를 그림판 버튼 오른쪽으로 설정
+		panel.add(viewSavedImagesButton);
+
+		viewSavedImagesButton.addActionListener(new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        SwingUtilities.invokeLater(() -> {
+		            ImageGallery imageGallery = new ImageGallery();
+		            imageGallery.show();
+		        });
+		    }
+		});
+		
+		
+		
 	/*	
 		JButton sendImageButton = new JButton("");
 		
