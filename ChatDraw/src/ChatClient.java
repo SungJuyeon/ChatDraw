@@ -31,6 +31,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 public class ChatClient extends JFrame {
@@ -111,6 +112,10 @@ public class ChatClient extends JFrame {
 			//String sender = chatMessage.getSender();
 			String content = chatMessage.getContent();
 
+			if (content.contains(".jpg") || content.contains(".png") || content.contains(".jpeg")) {
+	            addImageToChat(content);  // 이미지 경로를 처리하여 이미지를 채팅에 표시
+	        }
+			else {
 			// 메시지 내용에서 발신자 정보를 제외한 텍스트 추출
 			Integer closingBracketIndex = content.indexOf("]");
 			String extractedText = content.substring(closingBracketIndex + 2);
@@ -119,6 +124,7 @@ public class ChatClient extends JFrame {
 			String formattedMessage = String.format("(%s)\n[%s] - %s\n", chatMessage.getFormattedTimestamp(), 
 					chatMessage.getSender(), extractedText);
 			AppendText(formattedMessage);
+			}
 		}
 
 		String connect = String.format("                               - %s님이 접속하였습니다. -%n", userName);
@@ -149,7 +155,7 @@ public class ChatClient extends JFrame {
 		contentPane.setLayout(null);
 		topPanel = new JPanel();
 		topPanel.setBounds(0, 0, 360, 70);
-		topPanel.setBackground(Color.LIGHT_GRAY);
+		topPanel.setBackground(new Color(255, 255, 255));
 		contentPane.add(topPanel);
 	}
 
@@ -164,7 +170,7 @@ public class ChatClient extends JFrame {
 		chatTextArea = new JTextPane();
 		chatTextArea.setFocusable(false);
 		chatScrollPane.setViewportView(chatTextArea);
-		chatTextArea.setBackground(new Color(240, 240, 240));
+		chatTextArea.setBackground(new Color(245, 245, 245));
 
 		chatScrollPane.setViewportView(chatTextArea);
 		contentPane.add(chatScrollPane);
@@ -412,15 +418,22 @@ public class ChatClient extends JFrame {
 	        ImageIcon resizedIcon = new ImageIcon(resizedImg);
 
 	        JLabel imageLabel = new JLabel(resizedIcon);
-
+	        // 채팅 영역에 추가
 	        StyledDocument doc = chatTextArea.getStyledDocument();
 	        SimpleAttributeSet attributes = new SimpleAttributeSet();
 
 	        
-	        doc.insertString(doc.getLength(), "\n", attributes);
-	        chatTextArea.insertComponent(imageLabel);
+	        StyleConstants.setIcon(attributes, resizedIcon);
+	        doc.insertString(doc.getLength(), " ", attributes);
 
-	        chatTextArea.setCaretPosition(doc.getLength());
+	        // 줄바꿈 추가
+	        doc.insertString(doc.getLength(), "\n", null);
+
+	     // DB에 이미지 경로 저장
+	        //String message = String.format("[%s]\n이미지: %s\n", userName, imagePath);
+	        //DBManager.saveChatHistory(roomName, message, imagePath);
+	        
+	        AppendText("\n"); // 레이아웃 조정을 위해 공백 추가
 	    } catch (BadLocationException e) {
 	        e.printStackTrace();
 	    }
