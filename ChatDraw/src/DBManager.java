@@ -53,7 +53,7 @@ public class DBManager {
             {
                 while (rs.next()) 
                 {
-                    String sender = rs.getString("Sender");
+                    String sender = rs.getString("sender");
                     String content = rs.getString("content");
                     long timestamp = rs.getTimestamp("timestamp").getTime();
 

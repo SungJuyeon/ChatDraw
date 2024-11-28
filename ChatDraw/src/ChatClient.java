@@ -10,15 +10,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,7 +24,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -79,7 +74,7 @@ public class ChatClient extends JFrame {
 		TopPanel();
 		chatPanel();
 		TextPanel();
-		sendButton();
+		sendPanel();
 
 		setContentPane(contentPane);
 
@@ -96,7 +91,7 @@ public class ChatClient extends JFrame {
 		catch (IOException e) 
 		{
 			e.printStackTrace();
-			AppendText("connect error");
+			appendText("connect error", false);
 		}
 
 		loadChatHistory(roomName, userName);
@@ -109,44 +104,36 @@ public class ChatClient extends JFrame {
 
 		for (ChatMessage chatMessage : chatHistory) 
 		{
-			//String sender = chatMessage.getSender();
+			String sender = chatMessage.getSender();
 			String content = chatMessage.getContent();
+			System.out.println(sender);
+			System.out.println(content);
+			System.out.println(chatMessage.getFormattedTimestamp());
 
 			if (content.contains(".jpg") || content.contains(".png") || content.contains(".jpeg")) {
 	            addImageToChat(content);  // 이미지 경로를 처리하여 이미지를 채팅에 표시
 	        }
 			else {
-			// 메시지 내용에서 발신자 정보를 제외한 텍스트 추출
-			Integer closingBracketIndex = content.indexOf("]");
-			String extractedText = content.substring(closingBracketIndex + 2);
 
-			// 메시지 출력
-			String formattedMessage = String.format("(%s)\n[%s] - %s\n", chatMessage.getFormattedTimestamp(), 
-					chatMessage.getSender(), extractedText);
-			AppendText(formattedMessage);
+			boolean isOwnMessage = sender.equals(username);
+			
+			// 내가 보낸 메시지인지 판별하여 표시
+			if (isOwnMessage)
+			{
+				String formattedMessage = String.format("[%s]\n(%s)  %s\n", sender, chatMessage.getFormattedTimestamp(), content);
+				appendText(formattedMessage, isOwnMessage);
+			}
+			else
+			{
+				String formattedMessage = String.format("[%s]\n%s  (%s)\n", sender, content, chatMessage.getFormattedTimestamp());
+				appendText(formattedMessage, isOwnMessage);
+			}
+
 			}
 		}
 
-		String connect = String.format("                               - %s님이 접속하였습니다. -%n", userName);
-		AppendText(connect);
-	}
-
-	// db에 채팅방 정보 저장
-	public void saveChatRoom(String chatRoomName, String loginName) 
-	{
-		String sql = "INSERT INTO ChatRooms (chat_name, user_name) VALUES (?, ?)";
-		
-		try (Connection connection = DBConnector.getInstance().getConnection();
-				PreparedStatement pstmt = connection.prepareStatement(sql)) 
-		{
-			pstmt.setString(1, chatRoomName);
-			pstmt.setString(2, loginName);
-			pstmt.executeUpdate();
-		} 
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
+		String connect = String.format("                                 - %s님이 접속하였습니다. -%n", userName);
+		appendText(connect, false);
 	}
 
 	// 채팅 화면 GUI
@@ -219,7 +206,7 @@ public class ChatClient extends JFrame {
 		});
 	}
 
-	private void sendButton() 
+	private void sendPanel() 
 	{
 		panel = new JPanel();
 		panel.setBounds(0, 595, 360, 45);
@@ -277,20 +264,6 @@ public class ChatClient extends JFrame {
 		    }
 		});
 		
-		
-		
-	/*	
-		JButton sendImageButton = new JButton("");
-		
-		sendImageButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) 
-			{
-				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "png", "gif", "jpeg"));
-				int result = fileChooser.showOpenDialog(null);
-			}
-		});
-	*/
 		sendButton = new JButton("전송");
 		sendButton.setFocusPainted(false);
 		sendButton.setBorderPainted(false);
@@ -317,9 +290,11 @@ public class ChatClient extends JFrame {
 		if (!enteredText.isEmpty()) 
 		{
 			String msg = String.format("[%s]\n%s\n", userName, enteredText);
-			SendMessage(msg);
+			sendMessage(msg);
 			
-			DBManager.saveChatHistory(roomName, msg, enteredText);
+			appendText(msg, true);
+			
+			DBManager.saveChatHistory(roomName, userName, enteredText);
 			textPane.setText("");
 			textPane.requestFocus();
 			
@@ -333,19 +308,35 @@ public class ChatClient extends JFrame {
 	}
 
 	// 텍스트 패널이 비어있으면 버튼 비활성화
-	private void buttonState() {
+	private void buttonState() 
+	{
 		sendButton.setEnabled(!textPane.getText().trim().isEmpty());
 	}
 
-	// 채팅 텍스트 영역에 메시지 추가 메서드
-	private void AppendText(String msg) 
+	// 채팅창에 메시지 추가
+	private void appendText(String msg, boolean isOwnMessage) 
 	{
 		StyledDocument doc = chatTextArea.getStyledDocument();
 		SimpleAttributeSet attributes = new SimpleAttributeSet();
 
+		// 본인이 보낸 메시지인지 확인
+		if (isOwnMessage)
+		{
+			StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_RIGHT);
+			StyleConstants.setForeground(attributes, Color.blue);
+		}
+		else
+		{
+			StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_LEFT);
+			StyleConstants.setForeground(attributes, Color.black);
+		}
+		
 		try
 		{
+			int start = doc.getLength();
 			doc.insertString(doc.getLength(), msg, attributes);
+			int end = doc.getLength();
+			doc.setParagraphAttributes(start, end - start, attributes, false);
 			chatTextArea.setCaretPosition(doc.getLength());
 		}
 		catch (BadLocationException e)
@@ -354,7 +345,7 @@ public class ChatClient extends JFrame {
 		}
 	}
 
-	private void SendMessage(String msg) 
+	private void sendMessage(String msg) 
 	{
 		try 
 		{
@@ -362,7 +353,7 @@ public class ChatClient extends JFrame {
 		} 
 		catch (IOException e) 
 		{
-			AppendText("Error sending message");
+			appendText("Error sending message", true);
 			try 
 			{
 				dos.close();
@@ -389,14 +380,18 @@ public class ChatClient extends JFrame {
 			{
 				try 
 				{
-					//서버로부터 메시지 읽기
 					String msg = dis.readUTF();
-					AppendText(msg);
+					// pressEnter에서 이미 출력했으므로 다른 사용자의 메시지만 표시
+					boolean isOwnMessage = msg.contains("[" + userName + "]");
+					if (!isOwnMessage)
+					{
+						appendText(msg, false);
+					}
 
 				} 
 				catch (IOException e) 
 				{
-					AppendText("Error reading from server");
+					appendText("Error reading from server", false);
 					try
 					{
 						dis.close();
@@ -433,7 +428,7 @@ public class ChatClient extends JFrame {
 	        //String message = String.format("[%s]\n이미지: %s\n", userName, imagePath);
 	        //DBManager.saveChatHistory(roomName, message, imagePath);
 	        
-	        AppendText("\n"); // 레이아웃 조정을 위해 공백 추가
+	        appendText("\n", false); // 레이아웃 조정을 위해 공백 추가
 	    } catch (BadLocationException e) {
 	        e.printStackTrace();
 	    }
