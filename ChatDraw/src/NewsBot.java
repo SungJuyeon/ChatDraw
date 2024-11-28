@@ -10,24 +10,25 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
-public class NewsBot {
-    private JFrame frame;
+public class NewsBot extends JFrame {
     private JPanel contentPanel; // 뉴스 항목을 표시할 JPanel
     private JTextField inputField;
     private JPanel buttonPanel;
     private HashMap<String, String[][]> newsData; // 카테고리별 뉴스 데이터 (제목, URL, 설명)
 
-    public NewsBot() {
-        frame = new JFrame("뉴스봇");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500, 600);
-        frame.setLayout(new BorderLayout());
+    public NewsBot(String inputId, String name) {
+    	super("뉴스봇");
 
+    	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(373, 675);
+        setLayout(new BorderLayout());
+        
         // 뉴스 내용 패널
         contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS)); // 세로로 배치
+        contentPanel.setBackground(new Color(236, 243, 255));
         JScrollPane contentScrollPane = new JScrollPane(contentPanel);
-        frame.add(contentScrollPane, BorderLayout.CENTER);
+        add(contentScrollPane, BorderLayout.CENTER);
 
         // 입력 영역
         inputField = new JTextField();
@@ -35,12 +36,13 @@ public class NewsBot {
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.add(inputField, BorderLayout.CENTER);
         inputPanel.add(searchButton, BorderLayout.EAST);
-        frame.add(inputPanel, BorderLayout.SOUTH);
+        add(inputPanel, BorderLayout.SOUTH);
 
         // 버튼 패널 (카테고리 표시용)
         buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
-        frame.add(buttonPanel, BorderLayout.NORTH);
+        buttonPanel.setBackground(new Color(255, 255, 255));
+        add(buttonPanel, BorderLayout.NORTH);
 
         // 뉴스 데이터 초기화
         initNewsData();
@@ -48,7 +50,7 @@ public class NewsBot {
         // 돋보기 버튼 클릭 시
         searchButton.addActionListener(e -> displayCategories());
 
-        frame.setVisible(true);
+        setVisible(true);
     }
 
     private void initNewsData() {
@@ -113,6 +115,7 @@ public class NewsBot {
         for (String category : categories) {
             JButton button = new JButton(category);
             button.addActionListener(new CategoryButtonListener(category));
+            button.setBackground(new Color(236, 243, 255));
             buttonPanel.add(button);
         }
         buttonPanel.revalidate();
@@ -189,10 +192,11 @@ public class NewsBot {
                 shareButton.setBackground(Color.WHITE);
                 shareButton.addActionListener(ev -> {
                     try {
-                        // "기사 공유" 로직 추가 (URL 복사 또는 다른 로직 구현 가능)
+                        // "기사 공유" 로직 추가
                         String validUrl = item[1].replace("\\/", "/");
                         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(validUrl), null);
-                        JOptionPane.showMessageDialog(frame, "URL이 클립보드에 복사되었습니다: " + validUrl);
+                        //JOptionPane.showMessageDialog(frame, "URL이 클립보드에 복사되었습니다: " + validUrl);
+                        // chatList의 친구 초대 띄우고, 전송할 친구를 선택해서 전송하기 버튼을 누르면 그 채팅방에 url이 전송됨
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
@@ -265,6 +269,8 @@ public class NewsBot {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(NewsBot::new);
+        SwingUtilities.invokeLater(() -> new NewsBot("inputId", "Name"));
     }
+    
+    
 }

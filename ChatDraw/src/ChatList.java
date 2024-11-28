@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
@@ -59,7 +60,10 @@ public class ChatList extends JFrame {
 		contentPane.setBackground(new Color(255, 255, 255));
 
 		// GUI
-		setSideMenu(inputId);
+		SideMenu sideMenu = new SideMenu(this, inputId, loginName);  // Pass 'this' as the parent frame
+        sideMenu.setBounds(0, 0, 60, 640);
+        contentPane.add(sideMenu);
+        
 		setTopMenu(loginName);
 		loadChatRooms(loginName);
 		setContentPane(contentPane);
@@ -91,44 +95,7 @@ public class ChatList extends JFrame {
 	    return names;
 	}
 
-
-	// 좌측 메뉴 버튼
-	private void setSideMenu(String inputId) 
-	{
-		JPanel sidePanel = new JPanel();
-		sidePanel.setBackground(Color.LIGHT_GRAY);
-		sidePanel.setBounds(0, 0, 60, 640);
-		contentPane.add(sidePanel);
-		sidePanel.setLayout(null);
-
-		JButton viewUserButton = new JButton();
-		viewUserButton.setIcon(new ImageIcon(ChatList.class.getResource("/images/icon_users.png")));
-		viewUserButton.setFocusPainted(false);
-		viewUserButton.setBorderPainted(false);
-		viewUserButton.setBackground(Color.LIGHT_GRAY);
-		viewUserButton.setBounds(10, 23, 40, 40);
-		sidePanel.add(viewUserButton);
-
-		viewUserButton.addActionListener(new ActionListener() 
-		{
-			public void actionPerformed(ActionEvent e) 
-			{
-				UserList n = new UserList(inputId);
-				n.setVisible(true);
-				ChatList.this.dispose();
-			}
-		});
-
-		JButton chatListButton = new JButton();
-		chatListButton.setIcon(new ImageIcon(ChatList.class.getResource("/images/icon_chat.png")));
-		chatListButton.setBorderPainted(false);
-		chatListButton.setFocusPainted(false);
-		chatListButton.setBackground(Color.LIGHT_GRAY);
-		chatListButton.setBounds(10, 73, 40, 40);
-		sidePanel.add(chatListButton);
-	}
-
-	// 상단 채팅+ 버튼
+	// 상단 채팅+ 초대 버튼
 	private void setTopMenu(String loginName) {
 		JPanel topPanel = new JPanel();
 		topPanel.setBounds(60, 0, 300, 70);

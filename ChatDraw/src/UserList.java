@@ -40,39 +40,10 @@ public class UserList extends JFrame {
     }
     
     // 유저, 채팅 목록 이동 버튼
-    private void setSideMenu(String inputId)
-    {
-        JPanel sidePanel = new JPanel();
-        sidePanel.setBackground(Color.LIGHT_GRAY);
-        sidePanel.setLayout(null);
-        sidePanel.setBounds(0, 0, 60, 640);
-        contentPane.add(sidePanel);
-        
-        JButton viewUserButton = new JButton();
-        viewUserButton.setIcon(new ImageIcon(UserList.class.getResource("/images/icon_users.png")));
-        viewUserButton.setFocusPainted(false);
-        viewUserButton.setBorderPainted(false);
-        viewUserButton.setBackground(Color.LIGHT_GRAY);
-        viewUserButton.setBounds(10, 23, 40, 40);
-        sidePanel.add(viewUserButton);
-        
-        JButton chatListButton = new JButton(); 
-        chatListButton.setIcon(new ImageIcon(UserList.class.getResource("/images/icon_chat.png")));
-        chatListButton.setFocusPainted(false);
-        chatListButton.setBorderPainted(false);
-        chatListButton.setBackground(Color.LIGHT_GRAY);
-        chatListButton.setBounds(10, 73, 40, 40);
-        sidePanel.add(chatListButton);
-        
-        // 채팅방 아이콘 클릭 시 채팅방 목록 오픈
-        chatListButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) 
-            {
-            	ChatList list = new ChatList(inputId, loadMyName(inputId));
-            	list.setVisible(true);
-            	dispose(); 
-            }
-        });
+    private void setSideMenu(String inputId) {
+        SideMenu sideMenu = new SideMenu(this, inputId, loadMyName(inputId));
+        sideMenu.setBounds(0, 0, 60, 640);  // 위치와 크기 조정
+        contentPane.add(sideMenu);
     }
     
     private void setLabel()
@@ -113,14 +84,14 @@ public class UserList extends JFrame {
     private JPanel createUserPanel(String imagePath, String name) 
     {
         JPanel dividePanel = new JPanel();
-        dividePanel.setBackground(new Color(240, 240, 240));
+        dividePanel.setBackground(new Color(236, 243, 255));
 
         JLabel myName = new JLabel();
         myName.setBounds(56, 10, 72, 27);
-        myName.setBackground(new Color(240, 240, 240));
+        myName.setBackground(new Color(255, 255, 255));
         myName.setText(name);
 
-        JLabel iconLabel = new JLabel(new ImageIcon(new ImageIcon(imagePath).getImage().getScaledInstance(41, 30, Image.SCALE_DEFAULT)));
+        JLabel iconLabel = new JLabel(new ImageIcon(new ImageIcon(imagePath).getImage().getScaledInstance(35, 35, Image.SCALE_DEFAULT)));
         iconLabel.setBounds(3, 7, 41, 30);
         
         dividePanel.setLayout(null);

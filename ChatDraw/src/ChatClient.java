@@ -71,9 +71,9 @@ public class ChatClient extends JFrame {
 		contentPane = new JPanel();
 
 		// GUI 
-		topPanel();
+		TopPanel();
 		chatPanel();
-		textPanel();
+		TextPanel();
 		sendPanel();
 
 		setContentPane(contentPane);
@@ -137,7 +137,7 @@ public class ChatClient extends JFrame {
 	}
 
 	// 채팅 화면 GUI
-	private void topPanel() 
+	private void TopPanel() 
 	{
 		contentPane.setLayout(null);
 		topPanel = new JPanel();
@@ -163,7 +163,7 @@ public class ChatClient extends JFrame {
 		contentPane.add(chatScrollPane);
 	}
 
-	private void textPanel() 
+	private void TextPanel() 
 	{
 		scrollPane = new JScrollPane();
 		scrollPane.setBounds(0, 506, 360, 88);
