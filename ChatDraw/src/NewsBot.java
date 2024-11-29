@@ -8,17 +8,26 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class NewsBot extends JFrame {
     private JPanel contentPanel; // 뉴스 항목을 표시할 JPanel
     private JTextField inputField;
     private JPanel buttonPanel;
     private HashMap<String, String[][]> newsData; // 카테고리별 뉴스 데이터 (제목, URL, 설명)
-
+    private String name;
+    
     public NewsBot(String inputId, String name) {
     	super("뉴스봇");
-
+    	this.name = name;
+    	
     	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(373, 675);
         setLayout(new BorderLayout());
@@ -194,11 +203,26 @@ public class NewsBot extends JFrame {
                     try {
                         // "기사 공유" 로직 추가
                         String validUrl = item[1].replace("\\/", "/");
-                        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(validUrl), null);
-                        //JOptionPane.showMessageDialog(frame, "URL이 클립보드에 복사되었습니다: " + validUrl);
-                        // chatList의 친구 초대 띄우고, 전송할 친구를 선택해서 전송하기 버튼을 누르면 그 채팅방에 url이 전송됨
+
+                        // 친구 목록 불러오기 및 선택하기
+                        List<String> chatRoomNames = getAllChatRoomNames();
+                        String selectedChatRoom = (String) JOptionPane.showInputDialog(
+                                NewsBot.this,
+                                "채팅방을 선택하세요:",
+                                "채팅방 선택",
+                                JOptionPane.PLAIN_MESSAGE,
+                                null,
+                                chatRoomNames.toArray(),
+                                chatRoomNames.get(0) // 기본값으로 첫 번째 채팅방
+                        );
+
+                        if (selectedChatRoom != null) {
+                            // 선택된 채팅방에 URL 전송
+                            sendUrlToChatRoom(selectedChatRoom, validUrl);
+                        }
+
                     } catch (Exception ex) {
-                        throw new RuntimeException(ex);
+                        ex.printStackTrace();
                     }
                 });
                 buttonPanel.add(Box.createHorizontalStrut(10)); // 두 버튼 사이 간격 추가
@@ -211,8 +235,6 @@ public class NewsBot extends JFrame {
                 // 뉴스 패널을 contentPanel에 추가
                 contentPanel.add(newsPanel);
             }
-
-
 
 
             // "더보기" 버튼 추가
@@ -264,6 +286,50 @@ public class NewsBot extends JFrame {
             // 해당 URL 브라우저에서 열기
             Desktop.getDesktop().browse(new URI(url));
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private List<String> getAllChatRoomNames() 
+	{
+		List<String> chatRoomNames = new ArrayList<>();
+		String sql = "SELECT chat_name FROM ChatRooms";
+		
+		try (Connection conn = DBConnector.getInstance().getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				ResultSet resultSet = pstmt.executeQuery()) 
+		{
+			while (resultSet.next()) 
+			{
+				chatRoomNames.add(resultSet.getString("chat_name"));
+			}
+		} 
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		return chatRoomNames;
+	}
+    
+    // URL을 선택된 채팅방에 전송하는 메서드
+    private void sendUrlToChatRoom(String chatRoomName, String url) {
+        // 예: 채팅방에 URL을 전송
+        String sql = "INSERT INTO ChatMessages (roomId, sender, content, timestamp) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DBConnector.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        	Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        	String sender = this.name;
+            pstmt.setString(1, chatRoomName);
+            pstmt.setString(2, sender);
+            pstmt.setString(3, url);
+            pstmt.setTimestamp(4, timestamp); 
+            pstmt.executeUpdate(); // 메시지 전송
+
+            // 확인 메시지 출력
+            JOptionPane.showMessageDialog(this, "URL이 " + chatRoomName + "에 전송되었습니다.");
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URL;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -19,8 +20,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -34,7 +37,7 @@ public class ChatClient extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JScrollPane chatScrollPane;
-	private JTextPane chatTextArea;
+	private ChatBubbleTextPane chatTextArea;
 	private JScrollPane scrollPane;
 	private JTextPane textPane;
 	private JPanel panel;
@@ -47,6 +50,10 @@ public class ChatClient extends JFrame {
 
 	private String roomName; 
 	private String userName; 
+	
+	private String inputId;
+    private String loginName;
+    private JFrame parentFrame;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -66,12 +73,16 @@ public class ChatClient extends JFrame {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.userName = userName;
 		this.roomName = roomName;
+		
+		this.inputId = inputId;  
+        this.loginName = loginName;  
+        this.parentFrame = parentFrame;
 
-		setBounds(100, 100, 373, 675);
+		setSize(373, 675);
 		contentPane = new JPanel();
 
 		// GUI 
-		TopPanel();
+		TopPanel(roomName);
 		chatPanel();
 		TextPanel();
 		sendPanel();
@@ -98,52 +109,75 @@ public class ChatClient extends JFrame {
 	}
 
 	// 채팅 내역 로드 및 출력
-	private void loadChatHistory(String roomName, String username) 
-	{
-		List<ChatMessage> chatHistory = DBManager.loadChatHistory(roomName);
+	private void loadChatHistory(String roomName, String username) {
+	    List<ChatMessage> chatHistory = DBManager.loadChatHistory(roomName);
 
-		for (ChatMessage chatMessage : chatHistory) 
-		{
-			String sender = chatMessage.getSender();
-			String content = chatMessage.getContent();
-			System.out.println(sender);
-			System.out.println(content);
-			System.out.println(chatMessage.getFormattedTimestamp());
+	    for (ChatMessage chatMessage : chatHistory) {
+	        String sender = chatMessage.getSender();
+	        String content = chatMessage.getContent();
+	        System.out.println(sender);
+	        System.out.println(content);
+	        System.out.println(chatMessage.getFormattedTimestamp());
 
-			if (content.contains(".jpg") || content.contains(".png") || content.contains(".jpeg")) {
+	        if (content.contains(".jpg") || content.contains(".png") || content.contains(".jpeg")) {
 	            addImageToChat(content);  // 이미지 경로를 처리하여 이미지를 채팅에 표시
+	        } else {
+	            boolean isOwnMessage = sender.equals(username);  // 내가 보낸 메시지인지 확인
+
+	            // 메시지를 본인 메시지인지 아닌지에 따라 다르게 포맷
+	            if (isOwnMessage) {
+	                String formattedMessage = String.format("[%s]\n(%s)  %s\n", sender, chatMessage.getFormattedTimestamp(), content);
+	                appendText(formattedMessage, isOwnMessage);  // 본인 메시지 -> 오른쪽 정렬
+	            } else if (content.startsWith("-")) {
+	                String formattedMessage = String.format("[%s]\n%s  (%s)\n", sender, content, chatMessage.getFormattedTimestamp());
+	                appendText(formattedMessage, false);  // 접속 메시지 -> 가운데 정렬
+	            } else {
+	                String formattedMessage = String.format("[%s]\n%s  (%s)\n", sender, content, chatMessage.getFormattedTimestamp());
+	                appendText(formattedMessage, false);  // 상대방 메시지 -> 왼쪽 정렬
+	            }
+	            
 	        }
-			else {
+	    }
 
-			boolean isOwnMessage = sender.equals(username);
-			
-			// 내가 보낸 메시지인지 판별하여 표시
-			if (isOwnMessage)
-			{
-				String formattedMessage = String.format("[%s]\n(%s)  %s\n", sender, chatMessage.getFormattedTimestamp(), content);
-				appendText(formattedMessage, isOwnMessage);
-			}
-			else
-			{
-				String formattedMessage = String.format("[%s]\n%s  (%s)\n", sender, content, chatMessage.getFormattedTimestamp());
-				appendText(formattedMessage, isOwnMessage);
-			}
-
-			}
-		}
-
-		String connect = String.format("                                 - %s님이 접속하였습니다. -%n", userName);
-		appendText(connect, false);
+	    // 접속 알림 메시지 처리
+	    String connect = String.format("- %s님이 접속하였습니다. -%n", username);
+	    appendText(connect, false);  // 접속 메시지는 가운데 정렬로 출력
 	}
 
+
 	// 채팅 화면 GUI
-	private void TopPanel() 
+	private void TopPanel(String roomName) 
 	{
 		contentPane.setLayout(null);
 		topPanel = new JPanel();
 		topPanel.setBounds(0, 0, 360, 70);
-		topPanel.setBackground(new Color(255, 255, 255));
+		topPanel.setBackground(new Color(133, 159, 254));
+		topPanel.setLayout(null);
 		contentPane.add(topPanel);
+		
+		// 뒤로가기 버튼
+	    JButton backButton = new JButton("<");
+	    backButton.setBounds(0, 20, 70, 30);  // 버튼 위치 조정
+	    backButton.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+	    backButton.setBackground(new Color(255, 255, 255, 0)); // 배경 색상
+	    backButton.setForeground(Color.WHITE); // 글자 색상
+	    backButton.addActionListener(new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	ChatList chatList = new ChatList(inputId, loginName);
+	            chatList.setVisible(true);
+	            parentFrame.dispose();
+	        }
+	    });
+	    topPanel.add(backButton); // 버튼을 패널에 추가
+		
+		// 방 이름
+	    JLabel roomNameLabel = new JLabel(roomName);
+	    roomNameLabel.setBounds(10, 20, 340, 30);
+	    roomNameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 15));
+	    //roomNameLabel.setHorizontalAlignment(SwingConstants.CENTER); // 중앙 정렬
+	    roomNameLabel.setForeground(Color.WHITE);
+	    topPanel.add(roomNameLabel); // 패널에 추가
 	}
 
 	private void chatPanel() 
@@ -154,10 +188,10 @@ public class ChatClient extends JFrame {
 		chatScrollPane.setBorder(BorderFactory.createEmptyBorder());
 		contentPane.add(chatScrollPane);
 
-		chatTextArea = new JTextPane();
+		chatTextArea = new ChatBubbleTextPane();
 		chatTextArea.setFocusable(false);
 		chatScrollPane.setViewportView(chatTextArea);
-		chatTextArea.setBackground(new Color(245, 245, 245));
+		chatTextArea.setBackground(new Color(255, 255, 255));
 
 		chatScrollPane.setViewportView(chatTextArea);
 		contentPane.add(chatScrollPane);
@@ -168,6 +202,7 @@ public class ChatClient extends JFrame {
 		scrollPane = new JScrollPane();
 		scrollPane.setBounds(0, 506, 360, 88);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		scrollPane.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 2)); // 윤곽선
 		contentPane.add(scrollPane);
 
 		textPane = new JTextPane();
@@ -264,23 +299,28 @@ public class ChatClient extends JFrame {
 		    }
 		});
 		
-		sendButton = new JButton("전송");
+		sendButton = new JButton();
 		sendButton.setFocusPainted(false);
 		sendButton.setBorderPainted(false);
-		sendButton.setBackground(new Color(243, 239, 180));
-		sendButton.setFont(new Font("맑은 고딕", Font.BOLD, 11));
-		sendButton.setBounds(284, 8, 61, 25);
+		sendButton.setBackground(new Color(255, 255, 255));
+
+		try {
+		    URL imageUrl = getClass().getResource("/images/sendButton.png");
+		    if (imageUrl != null) {
+		        ImageIcon originalIcon2 = new ImageIcon(imageUrl);
+		        Image scaledImage = originalIcon2.getImage().getScaledInstance(30, 25, Image.SCALE_SMOOTH);
+		        sendButton.setIcon(new ImageIcon(scaledImage));
+		    } else {
+		        System.out.println("이미지를 찾을 수 없습니다.");
+		    }
+		} catch (Exception e) {
+		    e.printStackTrace();
+		    System.out.println("이미지 로드 중 오류 발생");
+		}
+
+		sendButton.setBounds(300, 8, 50, 25);
 		panel.add(sendButton);
 
-		sendButton.setEnabled(false);
-
-		sendButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent actionEvent) 
-			{
-				pressEnter();
-			}
-		});
 	}
 
 	// 메시지 전송 및 채팅 기록 db에 저장
@@ -320,29 +360,22 @@ public class ChatClient extends JFrame {
 		SimpleAttributeSet attributes = new SimpleAttributeSet();
 
 		// 본인이 보낸 메시지인지 확인
-		if (isOwnMessage)
-		{
-			StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_RIGHT);
-			StyleConstants.setForeground(attributes, Color.blue);
-		}
-		else
-		{
-			StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_LEFT);
-			StyleConstants.setForeground(attributes, Color.black);
-		}
+		if (isOwnMessage) {
+            StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_RIGHT);
+        } else if (msg.startsWith("-")) {
+        	StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER);
+        } else {
+            StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_LEFT);
+        }
+		StyleConstants.setForeground(attributes, new Color(0, 0, 0, 0)); 
 		
-		try
-		{
-			int start = doc.getLength();
-			doc.insertString(doc.getLength(), msg, attributes);
-			int end = doc.getLength();
-			doc.setParagraphAttributes(start, end - start, attributes, false);
-			chatTextArea.setCaretPosition(doc.getLength());
-		}
-		catch (BadLocationException e)
-		{
-			e.printStackTrace();
-		}
+
+        try {
+            doc.insertString(doc.getLength(), msg + "\n", attributes);
+            doc.setParagraphAttributes(doc.getLength() - msg.length() - 1, msg.length() + 1, attributes, true);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
 	}
 
 	private void sendMessage(String msg) 

@@ -16,7 +16,7 @@ public class SideMenu extends JPanel {
 
         // SideMenu 구성
         setLayout(null);
-        setBackground(new Color(97, 150, 255));
+        setBackground(new Color(110, 144, 255));
 
         // 사용자 버튼
         JButton viewUserButton = createButton("/images/icon_users.png", 10, 23);
@@ -45,7 +45,7 @@ public class SideMenu extends JPanel {
         button.setIcon(scaledIcon);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setBackground(new Color(97, 150, 255));
+        button.setBackground(new Color(110, 144, 255));
         button.setBounds(x, y, 40, 40);
 
         return button;

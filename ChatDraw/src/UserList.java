@@ -27,7 +27,7 @@ public class UserList extends JFrame {
         this.loggedInId = inputId;
         
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 373, 675);
+        setSize(373, 675);
         contentPane = new JPanel();
         contentPane.setBackground(new Color(255, 255, 255));
         contentPane.setLayout(null);

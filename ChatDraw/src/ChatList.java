@@ -54,14 +54,14 @@ public class ChatList extends JFrame {
 		this.loggedinUserName = loginName;
 		
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 373, 675);
+		setSize(373, 675);
 		contentPane = new JPanel();
 		contentPane.setLayout(null);
 		contentPane.setBackground(new Color(255, 255, 255));
 
 		// GUI
-		SideMenu sideMenu = new SideMenu(this, inputId, loginName);  // Pass 'this' as the parent frame
-        sideMenu.setBounds(0, 0, 60, 640);
+		SideMenu sideMenu = new SideMenu(this, inputId, loginName);
+        sideMenu.setSize(60, 640);
         contentPane.add(sideMenu);
         
 		setTopMenu(loginName);
@@ -181,12 +181,12 @@ public class ChatList extends JFrame {
 	{
 		System.out.println(loginName);
 		JPanel chatPanel = new JPanel();
-		chatPanel.setBackground(new Color(240, 240, 240));
+		chatPanel.setBackground(new Color(236, 243, 255));
 		chatPanel.setLayout(null);
 
 		JTextPane textPane = new JTextPane();
 		textPane.setBounds(12, 10, 160, 27);
-		textPane.setBackground(new Color(240, 240, 240));
+		textPane.setBackground(new Color(236, 243, 255));
 		textPane.setEditable(false);
 		textPane.setText(chatRoomName);
 
@@ -194,8 +194,8 @@ public class ChatList extends JFrame {
 
 		JButton openChatButton = new JButton("채팅하기");
 		openChatButton.setFont(new Font("맑은 고딕", Font.PLAIN, 10));
-		openChatButton.setBackground(new Color(240, 240, 240));
-		openChatButton.setBorder(BorderFactory.createLineBorder(new Color(192, 192, 192)));
+		openChatButton.setBackground(new Color(236, 243, 255));
+		openChatButton.setBorder(BorderFactory.createLineBorder(new Color(250, 250, 255)));
 		openChatButton.setBounds(200, 12, 55, 23);
 
 		chatPanel.add(openChatButton);
@@ -272,6 +272,8 @@ public class ChatList extends JFrame {
 		{
 			textContent.append(name).append(",");
 		}
+		textContent.setLength(textContent.length() - 1);
+		
 
 		JTextPane textPane = new JTextPane();
 		textPane.setBounds(12, 10, 160, 27);
@@ -284,7 +286,7 @@ public class ChatList extends JFrame {
 		JButton openChatButton = new JButton("채팅하기");
 		openChatButton.setFont(new Font("맑은 고딕", Font.PLAIN, 10));
 		openChatButton.setBackground(new Color(240, 240, 240));
-		openChatButton.setBorder(BorderFactory.createLineBorder(new Color(192, 192, 192)));
+		openChatButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0)));
 		openChatButton.setBounds(200, 12, 55, 23);
 
 		userPanel.add(openChatButton);
