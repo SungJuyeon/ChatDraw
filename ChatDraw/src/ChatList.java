@@ -194,7 +194,7 @@ public class ChatList extends JFrame {
 
 		JButton openChatButton = new JButton("채팅하기");
 		openChatButton.setFont(new Font("맑은 고딕", Font.PLAIN, 10));
-		openChatButton.setBackground(new Color(236, 243, 255));
+		openChatButton.setBackground(new Color(255, 255, 255));
 		openChatButton.setBorder(BorderFactory.createLineBorder(new Color(250, 250, 255)));
 		openChatButton.setBounds(200, 12, 55, 23);
 

@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextPane;
@@ -126,13 +128,13 @@ public class ChatClient extends JFrame {
 
 	            // 메시지를 본인 메시지인지 아닌지에 따라 다르게 포맷
 	            if (isOwnMessage) {
-	                String formattedMessage = String.format("[%s]\n(%s)  %s\n", sender, chatMessage.getFormattedTimestamp(), content);
+	                String formattedMessage = String.format("[%s]\n%s  {%s}\n", sender, content, chatMessage.getFormattedTimestamp());
 	                appendText(formattedMessage, isOwnMessage);  // 본인 메시지 -> 오른쪽 정렬
 	            } else if (content.startsWith("-")) {
-	                String formattedMessage = String.format("[%s]\n%s  (%s)\n", sender, content, chatMessage.getFormattedTimestamp());
+	                String formattedMessage = String.format("[%s]\n%s  {%s}\n", sender, content, chatMessage.getFormattedTimestamp());
 	                appendText(formattedMessage, false);  // 접속 메시지 -> 가운데 정렬
 	            } else {
-	                String formattedMessage = String.format("[%s]\n%s  (%s)\n", sender, content, chatMessage.getFormattedTimestamp());
+	                String formattedMessage = String.format("[%s]\n%s  {%s}\n", sender, content, chatMessage.getFormattedTimestamp());
 	                appendText(formattedMessage, false);  // 상대방 메시지 -> 왼쪽 정렬
 	            }
 	            
@@ -155,22 +157,6 @@ public class ChatClient extends JFrame {
 		topPanel.setLayout(null);
 		contentPane.add(topPanel);
 		
-		// 뒤로가기 버튼
-	    JButton backButton = new JButton("<");
-	    backButton.setBounds(0, 20, 70, 30);  // 버튼 위치 조정
-	    backButton.setFont(new Font("맑은 고딕", Font.BOLD, 18));
-	    backButton.setBackground(new Color(255, 255, 255, 0)); // 배경 색상
-	    backButton.setForeground(Color.WHITE); // 글자 색상
-	    backButton.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	        	ChatList chatList = new ChatList(inputId, loginName);
-	            chatList.setVisible(true);
-	            parentFrame.dispose();
-	        }
-	    });
-	    topPanel.add(backButton); // 버튼을 패널에 추가
-		
 		// 방 이름
 	    JLabel roomNameLabel = new JLabel(roomName);
 	    roomNameLabel.setBounds(10, 20, 340, 30);
@@ -180,22 +166,30 @@ public class ChatClient extends JFrame {
 	    topPanel.add(roomNameLabel); // 패널에 추가
 	}
 
-	private void chatPanel() 
-	{
-		chatScrollPane = new JScrollPane();
-		chatScrollPane.setBounds(0, 70, 360, 437);
-		chatScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		chatScrollPane.setBorder(BorderFactory.createEmptyBorder());
-		contentPane.add(chatScrollPane);
+	private void chatPanel() {
+	    chatScrollPane = new JScrollPane();
+	    chatScrollPane.setBounds(0, 70, 360, 437);
+	    chatScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+	    chatScrollPane.setBorder(BorderFactory.createEmptyBorder());
+	    contentPane.add(chatScrollPane);
 
-		chatTextArea = new ChatBubbleTextPane();
-		chatTextArea.setFocusable(false);
-		chatScrollPane.setViewportView(chatTextArea);
-		chatTextArea.setBackground(new Color(255, 255, 255));
+	    chatTextArea = new ChatBubbleTextPane();
+	    chatTextArea.setFocusable(false);
+	    chatTextArea.setBackground(new Color(255, 255, 255));
+	    chatScrollPane.setViewportView(chatTextArea);
 
-		chatScrollPane.setViewportView(chatTextArea);
-		contentPane.add(chatScrollPane);
+	    // 스크롤을 맨 아래로 내리기 위한 리스너 설정
+	    chatTextArea.addCaretListener(e -> {
+	        // 텍스트가 변경될 때마다 스크롤을 맨 아래로 내림
+	        SwingUtilities.invokeLater(() -> {
+	            JScrollBar vertical = chatScrollPane.getVerticalScrollBar();
+	            vertical.setValue(vertical.getMaximum());
+	        });
+	    });
+
+	    contentPane.add(chatScrollPane);
 	}
+
 
 	private void TextPanel() 
 	{
@@ -369,13 +363,18 @@ public class ChatClient extends JFrame {
         }
 		StyleConstants.setForeground(attributes, new Color(0, 0, 0, 0)); 
 		
-
-        try {
-            doc.insertString(doc.getLength(), msg + "\n", attributes);
-            doc.setParagraphAttributes(doc.getLength() - msg.length() - 1, msg.length() + 1, attributes, true);
-        } catch (BadLocationException e) {
-            e.printStackTrace();
-        }
+		try
+		{
+			int start = doc.getLength();
+			doc.insertString(doc.getLength(), msg, attributes);
+			int end = doc.getLength();
+			doc.setParagraphAttributes(start, end - start, attributes, false);
+			chatTextArea.setCaretPosition(doc.getLength());
+		}
+		catch (BadLocationException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	private void sendMessage(String msg) 
@@ -466,4 +465,6 @@ public class ChatClient extends JFrame {
 	        e.printStackTrace();
 	    }
 	}
+
+
 }
