@@ -7,10 +7,10 @@ import java.awt.event.ActionListener;
 public class SideMenu extends JPanel {
     private String inputId;
     private String loginName;
-    private JFrame parentFrame;  // Reference to the parent JFrame
+    private JFrame parentFrame;
 
     public SideMenu(JFrame parentFrame, String inputId, String loginName) {
-        this.parentFrame = parentFrame;  // Store the parent frame reference
+        this.parentFrame = parentFrame; 
         this.inputId = inputId;
         this.loginName = loginName;
 
@@ -63,7 +63,7 @@ public class SideMenu extends JPanel {
         public void actionPerformed(ActionEvent e) {
             UserList userList = new UserList(inputId);
             userList.setVisible(true);
-            parentFrame.dispose();  // Dispose the parent frame
+            parentFrame.dispose();  
         }
     }
 
@@ -81,7 +81,7 @@ public class SideMenu extends JPanel {
         public void actionPerformed(ActionEvent e) {
             ChatList chatList = new ChatList(inputId, loginName);
             chatList.setVisible(true);
-            parentFrame.dispose();  // Dispose the parent frame
+            parentFrame.dispose();  
         }
     }
 

@@ -12,6 +12,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -39,7 +40,7 @@ public class ChatClient extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JScrollPane chatScrollPane;
-	private ChatBubbleTextPane chatTextArea;
+	private JTextPane chatTextArea;
 	private JScrollPane scrollPane;
 	private JTextPane textPane;
 	private JPanel panel;
@@ -76,9 +77,6 @@ public class ChatClient extends JFrame {
 		this.userName = userName;
 		this.roomName = roomName;
 		
-		this.inputId = inputId;  
-        this.loginName = loginName;  
-        this.parentFrame = parentFrame;
 
 		setSize(373, 675);
 		contentPane = new JPanel();
@@ -173,7 +171,7 @@ public class ChatClient extends JFrame {
 	    chatScrollPane.setBorder(BorderFactory.createEmptyBorder());
 	    contentPane.add(chatScrollPane);
 
-	    chatTextArea = new ChatBubbleTextPane();
+	    chatTextArea = new JTextPane();
 	    chatTextArea.setFocusable(false);
 	    chatTextArea.setBackground(new Color(255, 255, 255));
 	    chatScrollPane.setViewportView(chatTextArea);
@@ -346,36 +344,122 @@ public class ChatClient extends JFrame {
 	{
 		sendButton.setEnabled(!textPane.getText().trim().isEmpty());
 	}
-
+	
 	// 채팅창에 메시지 추가
-	private void appendText(String msg, boolean isOwnMessage) 
-	{
-		StyledDocument doc = chatTextArea.getStyledDocument();
-		SimpleAttributeSet attributes = new SimpleAttributeSet();
+	private void appendText(String msg, boolean isOwnMessage) {
+	    StyledDocument doc = chatTextArea.getStyledDocument();
+	    SimpleAttributeSet attributes = new SimpleAttributeSet();
 
-		// 본인이 보낸 메시지인지 확인
-		if (isOwnMessage) {
-            StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_RIGHT);
-        } else if (msg.startsWith("-")) {
-        	StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER);
-        } else {
-            StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_LEFT);
-        }
-		StyleConstants.setForeground(attributes, new Color(0, 0, 0, 0)); 
-		
-		try
-		{
-			int start = doc.getLength();
-			doc.insertString(doc.getLength(), msg, attributes);
-			int end = doc.getLength();
-			doc.setParagraphAttributes(start, end - start, attributes, false);
-			chatTextArea.setCaretPosition(doc.getLength());
-		}
-		catch (BadLocationException e)
-		{
-			e.printStackTrace();
-		}
+	    // 글꼴 크기와 굵기 설정
+	    int fontSize = 13; // 글꼴 크기 설정
+	    boolean isBold = true; // Bold 설정
+
+	    // 본인이 보낸 메시지인지 확인
+	    if (isOwnMessage) {
+	        StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_RIGHT);
+	        StyleConstants.setForeground(attributes, Color.white); // 글자 색을 흰색으로
+	        StyleConstants.setBackground(attributes, new Color(69, 106, 255)); // 배경 색을 (69, 106, 255)로
+	    } else if (msg.startsWith("-")) { // 접속 메시지일 경우
+	        StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER); // 가운데 정렬
+	        StyleConstants.setForeground(attributes, Color.black); // 글자 색을 검정으로
+	        StyleConstants.setBackground(attributes, new Color(0, 0, 0, 0)); // 배경을 투명하게 설정
+	    } else {
+	        StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_LEFT);
+	        StyleConstants.setForeground(attributes, Color.black); // 글자 색을 검정으로
+	        StyleConstants.setBackground(attributes, new Color(223, 229, 255)); // 배경 색을 (223, 229, 255)로
+	    }
+
+	    // 글씨 크기와 굵기 설정
+	    StyleConstants.setFontSize(attributes, fontSize); // 글꼴 크기 설정
+	    StyleConstants.setBold(attributes, isBold); // 글꼴 굵기 설정
+
+	    // 타임스탬프 부분을 본문에서 제거하고
+	    String contentWithoutTimestamp = removeTimestamp(msg);
+
+	    try {
+	        int maxLineWidth = 200; // 최대 줄 너비
+	        String[] wrappedLines = wrapMessage(contentWithoutTimestamp, maxLineWidth); // 메시지를 나눔
+
+	        int start = doc.getLength();
+	        for (String line : wrappedLines) {
+	            doc.insertString(doc.getLength(), line + "\n", attributes); // 한 줄씩 삽입
+	        }
+
+	        // 타임스탬프만 별도로 처리하여 삽입
+	        String timestamp = extractTimestamp(msg); // 타임스탬프 부분 추출
+	        if (timestamp != null) {
+	            SimpleAttributeSet timestampAttributes = new SimpleAttributeSet();
+	            StyleConstants.setFontSize(timestampAttributes, fontSize); // 글꼴 크기 설정
+	            StyleConstants.setBold(timestampAttributes, isBold); // 글꼴 굵기 설정
+	            StyleConstants.setForeground(timestampAttributes, Color.GRAY); // 회색 글씨
+	            StyleConstants.setBackground(timestampAttributes, Color.WHITE); // 배경 없이
+
+	            // 타임스탬프 삽입
+	            doc.insertString(doc.getLength(), timestamp + "\n\n", timestampAttributes);
+	        }
+
+	        int end = doc.getLength();
+	        doc.setParagraphAttributes(start, end - start, attributes, false);
+	        chatTextArea.setCaretPosition(doc.getLength()); // 채팅 창의 끝으로 커서 이동
+	    } catch (BadLocationException e) {
+	        e.printStackTrace();
+	    }
 	}
+
+	// 메시지를 최대 너비를 기준으로 줄바꿈 처리
+	private String[] wrapMessage(String message, int maxLineWidth) {
+	    FontMetrics metrics = chatTextArea.getFontMetrics(chatTextArea.getFont());
+	    
+	    List<String> lines = new ArrayList<>();
+	    StringBuilder currentLine = new StringBuilder();
+	    int currentWidth = 0;
+
+	    for (char c : message.toCharArray()) {
+	        int charWidth = metrics.charWidth(c); // 현재 문자의 너비 계산
+
+	        if (currentWidth + charWidth > maxLineWidth) {
+	            // 현재 줄의 너비가 최대 줄 너비를 초과하면 줄바꿈
+	            lines.add(currentLine.toString());
+	            currentLine.setLength(0);
+	            currentWidth = 0;
+	        }
+
+	        currentLine.append(c);
+	        currentWidth += charWidth;
+	    }
+
+	    // 마지막 줄 추가
+	    if (currentLine.length() > 0) {
+	        lines.add(currentLine.toString());
+	    }
+
+	    return lines.toArray(new String[0]);
+	}
+
+
+	// 타임스탬프를 추출하는 메소드
+	private String extractTimestamp(String message) {
+	    // 메시지에서 "{"와 "}" 사이의 텍스트를 타임스탬프로 추출
+	    int start = message.indexOf("{");
+	    int end = message.indexOf("}");
+
+	    if (start != -1 && end != -1 && start < end) {
+	        return message.substring(start + 1, end);
+	    }
+	    return null;  // 타임스탬프가 없다면 null 반환
+	}
+
+	// 본문 메시지에서 타임스탬프 부분을 제거하는 메소드
+	private String removeTimestamp(String message) {
+	    int start = message.indexOf("{");
+	    int end = message.indexOf("}");
+
+	    if (start != -1 && end != -1 && start < end) {
+	        return message.substring(0, start).trim() + message.substring(end + 1).trim();  // 타임스탬프 제거 후 반환
+	    }
+	    return message;  // 타임스탬프가 없으면 그대로 반환
+	}
+	
 
 	private void sendMessage(String msg) 
 	{

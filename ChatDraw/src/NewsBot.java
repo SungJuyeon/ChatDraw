@@ -98,7 +98,7 @@ public class NewsBot extends JFrame {
             }
             br.close();
 
-            // JSON 파싱 (여기서는 간단히 정규식으로 처리)
+            // JSON 파싱 
             String json = response.toString();
             String[] titles = json.split("\"title\":\"");
             String[] links = json.split("\"link\":\"");
@@ -106,9 +106,24 @@ public class NewsBot extends JFrame {
 
             String[][] news = new String[3][3]; // 3개의 뉴스 데이터 저장 (제목, 링크, 설명)
             for (int i = 1; i <= 3 && i < titles.length && i < links.length && i < descriptions.length; i++) {
-                news[i - 1][0] = titles[i].split("\",")[0].replaceAll("<.*?>", ""); // 제목
-                news[i - 1][1] = links[i].split("\",")[0]; // URL
-                news[i - 1][2] = descriptions[i].split("\",")[0].replaceAll("<.*?>", ""); // 설명
+            	// 제목
+                news[i - 1][0] = titles[i].split("\",")[0]
+                        .replaceAll("<.*?>", "") // HTML 태그 제거
+                        .replaceAll("&quot;", "\"") // &quot;를 "로 변환
+                        .replaceAll("&lt;", "<") // &lt;를 <로 변환
+                        .replaceAll("&gt;", ">") // &gt;를 >로 변환
+                        .replaceAll("&amp;", "&"); // &amp;를 &로 변환
+
+                // URL
+                news[i - 1][1] = links[i].split("\",")[0];
+
+                // 설명
+                news[i - 1][2] = descriptions[i].split("\",")[0]
+                        .replaceAll("<.*?>", "") // HTML 태그 제거
+                        .replaceAll("&quot;", "\"") // &quot;를 "로 변환
+                        .replaceAll("&lt;", "<") // &lt;를 <로 변환
+                        .replaceAll("&gt;", ">") // &gt;를 >로 변환
+                        .replaceAll("&amp;", "&"); // &amp;를 &로 변환
             }
             return news;
 
