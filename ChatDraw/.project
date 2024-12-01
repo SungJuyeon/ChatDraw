@@ -14,13 +14,6 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>src/images/newsbot.png</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/Users/Downloads/newsbot.png</locationURI>
-		</link>
-	</linkedResources>
 	<filteredResources>
 		<filter>
 			<id>1732169878577</id>
