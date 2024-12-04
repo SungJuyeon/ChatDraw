@@ -8,26 +8,36 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
-public class NewsBot {
-    private JFrame frame;
+public class NewsBot extends JFrame {
     private JPanel contentPanel; // 뉴스 항목을 표시할 JPanel
     private JTextField inputField;
     private JPanel buttonPanel;
     private HashMap<String, String[][]> newsData; // 카테고리별 뉴스 데이터 (제목, URL, 설명)
-
-    public NewsBot() {
-        frame = new JFrame("뉴스봇");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500, 600);
-        frame.setLayout(new BorderLayout());
-
+    private String name;
+    
+    public NewsBot(String inputId, String name) {
+    	super("뉴스봇");
+    	this.name = name;
+    	
+    	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(373, 675);
+        setLayout(new BorderLayout());
+        
         // 뉴스 내용 패널
         contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS)); // 세로로 배치
+        contentPanel.setBackground(new Color(236, 243, 255));
         JScrollPane contentScrollPane = new JScrollPane(contentPanel);
-        frame.add(contentScrollPane, BorderLayout.CENTER);
+        add(contentScrollPane, BorderLayout.CENTER);
 
         // 입력 영역
         inputField = new JTextField();
@@ -35,12 +45,13 @@ public class NewsBot {
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.add(inputField, BorderLayout.CENTER);
         inputPanel.add(searchButton, BorderLayout.EAST);
-        frame.add(inputPanel, BorderLayout.SOUTH);
+        add(inputPanel, BorderLayout.SOUTH);
 
         // 버튼 패널 (카테고리 표시용)
         buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
-        frame.add(buttonPanel, BorderLayout.NORTH);
+        buttonPanel.setBackground(new Color(255, 255, 255));
+        add(buttonPanel, BorderLayout.NORTH);
 
         // 뉴스 데이터 초기화
         initNewsData();
@@ -48,7 +59,7 @@ public class NewsBot {
         // 돋보기 버튼 클릭 시
         searchButton.addActionListener(e -> displayCategories());
 
-        frame.setVisible(true);
+        setVisible(true);
     }
 
     private void initNewsData() {
@@ -87,7 +98,7 @@ public class NewsBot {
             }
             br.close();
 
-            // JSON 파싱 (여기서는 간단히 정규식으로 처리)
+            // JSON 파싱 
             String json = response.toString();
             String[] titles = json.split("\"title\":\"");
             String[] links = json.split("\"link\":\"");
@@ -95,9 +106,24 @@ public class NewsBot {
 
             String[][] news = new String[3][3]; // 3개의 뉴스 데이터 저장 (제목, 링크, 설명)
             for (int i = 1; i <= 3 && i < titles.length && i < links.length && i < descriptions.length; i++) {
-                news[i - 1][0] = titles[i].split("\",")[0].replaceAll("<.*?>", ""); // 제목
-                news[i - 1][1] = links[i].split("\",")[0]; // URL
-                news[i - 1][2] = descriptions[i].split("\",")[0].replaceAll("<.*?>", ""); // 설명
+            	// 제목
+                news[i - 1][0] = titles[i].split("\",")[0]
+                        .replaceAll("<.*?>", "") // HTML 태그 제거
+                        .replaceAll("&quot;", "\"") // &quot;를 "로 변환
+                        .replaceAll("&lt;", "<") // &lt;를 <로 변환
+                        .replaceAll("&gt;", ">") // &gt;를 >로 변환
+                        .replaceAll("&amp;", "&"); // &amp;를 &로 변환
+
+                // URL
+                news[i - 1][1] = links[i].split("\",")[0];
+
+                // 설명
+                news[i - 1][2] = descriptions[i].split("\",")[0]
+                        .replaceAll("<.*?>", "") // HTML 태그 제거
+                        .replaceAll("&quot;", "\"") // &quot;를 "로 변환
+                        .replaceAll("&lt;", "<") // &lt;를 <로 변환
+                        .replaceAll("&gt;", ">") // &gt;를 >로 변환
+                        .replaceAll("&amp;", "&"); // &amp;를 &로 변환
             }
             return news;
 
@@ -113,6 +139,7 @@ public class NewsBot {
         for (String category : categories) {
             JButton button = new JButton(category);
             button.addActionListener(new CategoryButtonListener(category));
+            button.setBackground(new Color(236, 243, 255));
             buttonPanel.add(button);
         }
         buttonPanel.revalidate();
@@ -189,12 +216,28 @@ public class NewsBot {
                 shareButton.setBackground(Color.WHITE);
                 shareButton.addActionListener(ev -> {
                     try {
-                        // "기사 공유" 로직 추가 (URL 복사 또는 다른 로직 구현 가능)
+                        // "기사 공유" 로직 추가
                         String validUrl = item[1].replace("\\/", "/");
-                        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(validUrl), null);
-                        JOptionPane.showMessageDialog(frame, "URL이 클립보드에 복사되었습니다: " + validUrl);
+
+                        // 친구 목록 불러오기 및 선택하기
+                        List<String> chatRoomNames = getAllChatRoomNames();
+                        String selectedChatRoom = (String) JOptionPane.showInputDialog(
+                                NewsBot.this,
+                                "채팅방을 선택하세요:",
+                                "채팅방 선택",
+                                JOptionPane.PLAIN_MESSAGE,
+                                null,
+                                chatRoomNames.toArray(),
+                                chatRoomNames.get(0) // 기본값으로 첫 번째 채팅방
+                        );
+
+                        if (selectedChatRoom != null) {
+                            // 선택된 채팅방에 URL 전송
+                            sendUrlToChatRoom(selectedChatRoom, validUrl);
+                        }
+
                     } catch (Exception ex) {
-                        throw new RuntimeException(ex);
+                        ex.printStackTrace();
                     }
                 });
                 buttonPanel.add(Box.createHorizontalStrut(10)); // 두 버튼 사이 간격 추가
@@ -207,8 +250,6 @@ public class NewsBot {
                 // 뉴스 패널을 contentPanel에 추가
                 contentPanel.add(newsPanel);
             }
-
-
 
 
             // "더보기" 버튼 추가
@@ -263,8 +304,54 @@ public class NewsBot {
             e.printStackTrace();
         }
     }
+    
+    private List<String> getAllChatRoomNames() 
+	{
+		List<String> chatRoomNames = new ArrayList<>();
+		String sql = "SELECT chat_name FROM ChatRooms";
+		
+		try (Connection conn = DBConnector.getInstance().getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				ResultSet resultSet = pstmt.executeQuery()) 
+		{
+			while (resultSet.next()) 
+			{
+				chatRoomNames.add(resultSet.getString("chat_name"));
+			}
+		} 
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		return chatRoomNames;
+	}
+    
+    // URL을 선택된 채팅방에 전송하는 메서드
+    private void sendUrlToChatRoom(String chatRoomName, String url) {
+        // 예: 채팅방에 URL을 전송
+        String sql = "INSERT INTO ChatMessages (roomId, sender, content, timestamp) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DBConnector.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        	Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        	String sender = this.name;
+            pstmt.setString(1, chatRoomName);
+            pstmt.setString(2, sender);
+            pstmt.setString(3, url);
+            pstmt.setTimestamp(4, timestamp); 
+            pstmt.executeUpdate(); // 메시지 전송
+
+            // 확인 메시지 출력
+            JOptionPane.showMessageDialog(this, "URL이 " + chatRoomName + "에 전송되었습니다.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(NewsBot::new);
+        SwingUtilities.invokeLater(() -> new NewsBot("inputId", "Name"));
     }
+    
+    
 }

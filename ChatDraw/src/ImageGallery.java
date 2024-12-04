@@ -54,7 +54,8 @@ public class ImageGallery {
                                 // 더블 클릭을 처리 (두 클릭 사이의 간격이 짧으면 더블 클릭으로 간주)
                                 if (currentClickTime - lastClickTime < 500) {
                                     // 더블 클릭 시, 이미지를 채팅창에 전송
-                                    chatClient.addImageToChat(imageFile.getAbsolutePath());
+                                    //chatClient.addImageToChat(imageFile.getAbsolutePath());
+                                    chatClient.sendFile(imageFile);
                                     imageFrame.dispose(); // 이미지 갤러리 창 닫기
                                 } else {
                                     // 한 번 클릭 시, 선택된 이미지를 강조 (노란색 테두리)
