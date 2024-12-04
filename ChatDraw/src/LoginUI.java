@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -138,8 +139,12 @@ public class LoginUI extends JFrame {
                 {
                     try 
                     {
+                    	Point currentLocation = getLocationOnScreen();
+                    	
                         UserList frame = new UserList(inputId); 
+                        frame.setLocation(currentLocation);
                         frame.setVisible(true);
+                        
                         dispose();
                     } 
                     catch (Exception e) 
@@ -162,9 +167,13 @@ public class LoginUI extends JFrame {
             {
                 try 
                 {
+                	Point currentLocation = getLocationOnScreen();
+                	
                     RegisterUI joinFrame = new RegisterUI();
-                    dispose();
+                    joinFrame.setLocation(currentLocation);
                     joinFrame.setVisible(true);
+                    
+                    dispose();
                 } 
                 catch (Exception e) 
                 {

@@ -180,6 +180,7 @@ public class ChatServer extends JFrame {
 		                    {
 		                        user.dos.write(buffer, 0, bytesRead);
 		                    }
+		                    dos.flush();
 		                }
 		            } 
 		            else 

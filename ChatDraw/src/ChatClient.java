@@ -589,46 +589,49 @@ public class ChatClient extends JFrame {
 	        appendText("파일 전송 오류", true);
 	    }
 	}
-
+	
 	// 채팅창에 이미지 표시
-	public void addImage(String imagePath, String sender) {
+	public void addImage(String imagePath, String sender) 
+	{
 	    try {
 	        ImageIcon imageIcon = new ImageIcon(imagePath);
 	        Image img = imageIcon.getImage();
 	        Image resizedImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
 	        ImageIcon resizedIcon = new ImageIcon(resizedImg);
 
-	        // 채팅 영역에 추가
 	        StyledDocument doc = chatTextArea.getStyledDocument();
-	        SimpleAttributeSet attributes = new SimpleAttributeSet();
-
-	        StyleConstants.setIcon(attributes, resizedIcon);
-	        boolean isOwnMsg = sender.equals(this.userName);
-	       /*
-	        // 이름 표시
 	        SimpleAttributeSet nameAttributes = new SimpleAttributeSet();
+	        SimpleAttributeSet ImageAttributes = new SimpleAttributeSet();
+	        SimpleAttributeSet imageAlignment = new SimpleAttributeSet();
 	        
+	        boolean isOwnMsg = sender.equals(this.userName);    
+	        doc.insertString(doc.getLength(), "\n", null);
+	        // 이름 속성 설정
+	        String msg = String.format("[%s]", sender);
 	        if (isOwnMsg)
-	         {
+	        {
 	            StyleConstants.setAlignment(nameAttributes, StyleConstants.ALIGN_RIGHT);
-		        StyleConstants.setForeground(nameAttributes, Color.white); 
-		        StyleConstants.setBackground(nameAttributes, new Color(69, 106, 255)); 
+	            StyleConstants.setForeground(nameAttributes, Color.white);
+	            StyleConstants.setBackground(nameAttributes, new Color(69, 106, 255));
 	        } 
 	        else 
 	        {
 	            StyleConstants.setAlignment(nameAttributes, StyleConstants.ALIGN_LEFT);
-	            StyleConstants.setForeground(nameAttributes, Color.black); 
-		        StyleConstants.setBackground(nameAttributes, new Color(223, 229, 255));
+	            StyleConstants.setForeground(nameAttributes, Color.black);
+	            StyleConstants.setBackground(nameAttributes, new Color(223, 229, 255));
 	        }
+	        StyleConstants.setFontSize(nameAttributes, 13);
+	        StyleConstants.setBold(nameAttributes, true);
 	        
-	        StyleConstants.setFontSize(nameAttributes, 13); 
-		    StyleConstants.setBold(nameAttributes, true);
-	        doc.insertString(doc.getLength(), "[" + sender + "]\n", nameAttributes);
-			*/
-	        // 이미지 표시
-	        int start = doc.getLength();
-	        doc.insertString(start, " ", attributes);
-	        SimpleAttributeSet imageAlignment = new SimpleAttributeSet();
+	        // 이름 표시
+	        int nameStart = doc.getLength();
+	        doc.insertString(nameStart, msg, nameAttributes);
+	        doc.setParagraphAttributes(nameStart, doc.getLength() - nameStart, nameAttributes, false);
+	        
+	        doc.insertString(doc.getLength(), "\n", null);
+	        appendText("\n", false);
+	        // 이미지 속성 설정
+	        StyleConstants.setIcon(ImageAttributes, resizedIcon);
 	        
 	        if (isOwnMsg) 
 	        {
@@ -638,11 +641,17 @@ public class ChatClient extends JFrame {
 	        {
 	            StyleConstants.setAlignment(imageAlignment, StyleConstants.ALIGN_LEFT);
 	        }
+	        // 이미지 표시
+	        int start = doc.getLength();
+	        doc.insertString(start, " ", ImageAttributes);
 	        doc.setParagraphAttributes(start, doc.getLength() - start, imageAlignment, false);
-
-	        // 줄바꿈 추가
+	        
 	        doc.insertString(doc.getLength(), "\n", null);
-	        chatTextArea.setCaretPosition(doc.getLength());
+	        appendText("\n", false);
+	        
+	        SwingUtilities.invokeLater(() -> {
+	        	chatTextArea.setCaretPosition(doc.getLength());
+	        });
 
 	    } catch (BadLocationException e) {
 	        e.printStackTrace();

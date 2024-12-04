@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
@@ -320,8 +321,10 @@ public class ChatList extends JFrame {
 	// 채팅창 열기
 	private void openChatClient(String RoomName, String loginName) 
 	{
+		Point currentLocation = getLocationOnScreen();
 		// ChatClient 실행 및 필요한 정보 전달
 		ChatClient chatClient = new ChatClient(loginName, RoomName);
+		chatClient.setLocation(currentLocation);
 		chatClient.setVisible(true);
 	}
 }
