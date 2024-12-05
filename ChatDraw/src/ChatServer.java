@@ -1,13 +1,25 @@
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.UIManager;
 
 public class ChatServer extends JFrame {
 	private JPanel contentPane;
@@ -150,31 +162,49 @@ public class ChatServer extends JFrame {
 
 		public void run() 
 		{
-			while (true) 
-			{
-				try 
-				{
-					// 클라이언트로부터 메시지 수신
-					String msg = dis.readUTF();
-					WriteAll(msg + "\n");
-				} 
-				catch (Exception e) 
-				{
-					UserVec.removeElement(this);
-					appendText("UserName " + "퇴장. 현재 참가자 수 " + UserVec.size() + "\n");
-					try 
-					{
-						dos.close();
-						dis.close();
-						clientSocket.close();
-						break;
-					} 
-					catch (Exception ee) 
-					{
-						break;
-					}
-				}
-			}
+		    while (true) 
+		    {
+		        try {
+		            String msg = dis.readUTF();
+		            
+		            if (msg.contains("[이미지]")) 
+		            {
+		                WriteAll(msg + "\n");
+
+		                // 파일 데이터를 수신 및 전송
+		                byte[] buffer = new byte[8192]; 
+		                int bytesRead;
+		                while ((bytesRead = dis.read(buffer)) > 0) 
+		                {
+		                    for (UserThread user : UserVec) 
+		                    {
+		                        user.dos.write(buffer, 0, bytesRead);
+		                    }
+		                    dos.flush();
+		                }
+		            } 
+		            else 
+		            {
+		                WriteAll(msg + "\n");
+		            }
+		        } 
+		        catch (Exception e) 
+		        {
+		            UserVec.removeElement(this);
+		            appendText("UserName " + "퇴장. 현재 참가자 수 " + UserVec.size() + "\n");
+		            try 
+		            {
+		                dos.close();
+		                dis.close();
+		                clientSocket.close();
+		                break;
+		            } 
+		            catch (Exception ee)
+		            {
+		                break;
+		            }
+		        }
+		    }
 		}
 	}
 

@@ -9,6 +9,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
@@ -18,6 +21,7 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -241,6 +245,30 @@ public class ChatClient extends JFrame {
 		contentPane.add(panel);
 		panel.setLayout(null);
 		
+		// 파일 선택 버튼
+		JButton fileButton = new JButton("");
+		fileButton.setFocusPainted(false);
+		fileButton.setBorderPainted(false);
+		fileButton.setBackground(Color.WHITE);
+		fileButton.setIcon(new ImageIcon(ChatClient.class.getResource("/images/icon_folder.png")));
+		fileButton.setBounds(111, 0, 44, 40);
+		panel.add(fileButton);
+
+		fileButton.addActionListener(new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent e)
+		    {
+		        JFileChooser fileChooser = new JFileChooser();
+		        int returnValue = fileChooser.showOpenDialog(null);
+		        if (returnValue == JFileChooser.APPROVE_OPTION) 
+		        {
+		            File selectedFile = fileChooser.getSelectedFile();
+		            sendFile(selectedFile);
+		        }
+		    }
+		});
+
+		
 		// 그림판 열기 버튼
 		JButton drawingBoardButton = new JButton(""); 
 		ImageIcon originalIcon = new ImageIcon(ChatClient.class.getResource("/images/icon_palette.png"));
@@ -249,8 +277,7 @@ public class ChatClient extends JFrame {
 		ImageIcon resizedIcon = new ImageIcon(resizedImage);
 		drawingBoardButton.setIcon(resizedIcon);
 
-		drawingBoardButton.setFocusPainted(false);
-		drawingBoardButton.setBorderPainted(false);
+		
 		drawingBoardButton.setBackground(Color.white);
 		drawingBoardButton.setFont(new Font("Dialog", Font.BOLD, 18));
 		drawingBoardButton.setBounds(10, 0, 44, 40);
@@ -490,37 +517,149 @@ public class ChatClient extends JFrame {
 
 	// 서버로부터 메시지 수신
 	class MessageReceiver extends Thread {
-		public void run() 
-		{
-			while (true) 
-			{
-				try 
-				{
-					String msg = dis.readUTF();
-					// pressEnter에서 이미 출력했으므로 다른 사용자의 메시지만 표시
-					boolean isOwnMessage = msg.contains("[" + userName + "]");
-					if (!isOwnMessage)
-					{
-						appendText(msg, false);
-					}
+	    public void run() {
+	        while (true) {
+	            try {
+	                String msg = dis.readUTF();
+	                boolean isOwnMessage = msg.contains("[" + userName + "]");
 
-				} 
-				catch (IOException e) 
-				{
-					appendText("Error reading from server", false);
-					try
-					{
-						dis.close();
-						socket.close();
-						break;
-					} 
-					catch (Exception ee) {
-						break;
-					}
-				}
-			}
-		}
+	                if (msg.contains("[이미지]")) {
+	                	// 발신자명 및 확장자 추출
+	                    String sender = msg.substring(1, msg.indexOf("]")).trim();
+	                    String originalFileName = msg.substring(msg.indexOf("[이미지]") + 7).trim();
+	                    String fileExtension = originalFileName.substring(originalFileName.lastIndexOf('.'));	                  
+	                    
+	                    // c:\received_image 디렉토리에 저장
+	                    File directory = new File("c:\\received_image");
+	                    if (!directory.exists()) {
+	                        directory.mkdir();
+	                    }
+	                    File tempFile = new File(directory, "received_image_" + System.currentTimeMillis() + fileExtension);
+
+	                    // 파일 데이터 수신
+	                    try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+	                        byte[] buffer = new byte[8192];
+	                        int bytesRead;
+	                        while (dis.available() > 0 && (bytesRead = dis.read(buffer)) > 0) {
+	                            fos.write(buffer, 0, bytesRead);
+	                        }
+	                    }
+
+	                    // 이미지 표시
+	                    addImage(tempFile.getAbsolutePath(), sender);
+	                } else {
+	                    if (!isOwnMessage) {
+	                        appendText(msg, false);
+	                    }
+	                }
+	            } catch (IOException e) {
+	                appendText("서버로부터 메시지 읽기 오류", false);
+	                try {
+	                    dis.close();
+	                    socket.close();
+	                    break;
+	                } catch (Exception ee) {
+	                    break;
+	                }
+	            }
+	        }
+	    }
 	}
+
+	// 파일을 전송하는 메소드
+	public void sendFile(File file)
+	{
+	    try 
+	    {
+	        // 사용자 이름과 파일 시작 메시지를 전송
+	        String msg = String.format("[%s]\n[이미지]%s", userName, file.getName());
+	        dos.writeUTF(msg);
+
+	        // 파일 데이터를 전송
+	        FileInputStream fis = new FileInputStream(file);
+	        byte[] buffer = new byte[8192];
+	        int bytesRead;
+	        while ((bytesRead = fis.read(buffer)) > 0) 
+	        {
+	            dos.write(buffer, 0, bytesRead);
+	        }
+	        fis.close();
+	        dos.flush();
+	    } 
+	    catch (IOException e)
+	    {
+	        appendText("파일 전송 오류", true);
+	    }
+	}
+	
+	// 채팅창에 이미지 표시
+	public void addImage(String imagePath, String sender) 
+	{
+	    try {
+	        ImageIcon imageIcon = new ImageIcon(imagePath);
+	        Image img = imageIcon.getImage();
+	        Image resizedImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+	        ImageIcon resizedIcon = new ImageIcon(resizedImg);
+
+	        StyledDocument doc = chatTextArea.getStyledDocument();
+	        SimpleAttributeSet nameAttributes = new SimpleAttributeSet();
+	        SimpleAttributeSet ImageAttributes = new SimpleAttributeSet();
+	        SimpleAttributeSet imageAlignment = new SimpleAttributeSet();
+	        
+	        boolean isOwnMsg = sender.equals(this.userName);    
+	        doc.insertString(doc.getLength(), "\n", null);
+	        // 이름 속성 설정
+	        String msg = String.format("[%s]", sender);
+	        if (isOwnMsg)
+	        {
+	            StyleConstants.setAlignment(nameAttributes, StyleConstants.ALIGN_RIGHT);
+	            StyleConstants.setForeground(nameAttributes, Color.white);
+	            StyleConstants.setBackground(nameAttributes, new Color(69, 106, 255));
+	        } 
+	        else 
+	        {
+	            StyleConstants.setAlignment(nameAttributes, StyleConstants.ALIGN_LEFT);
+	            StyleConstants.setForeground(nameAttributes, Color.black);
+	            StyleConstants.setBackground(nameAttributes, new Color(223, 229, 255));
+	        }
+	        StyleConstants.setFontSize(nameAttributes, 13);
+	        StyleConstants.setBold(nameAttributes, true);
+	        
+	        // 이름 표시
+	        int nameStart = doc.getLength();
+	        doc.insertString(nameStart, msg, nameAttributes);
+	        doc.setParagraphAttributes(nameStart, doc.getLength() - nameStart, nameAttributes, false);
+	        
+	        doc.insertString(doc.getLength(), "\n", null);
+	        appendText("\n", false);
+	        // 이미지 속성 설정
+	        StyleConstants.setIcon(ImageAttributes, resizedIcon);
+	        
+	        if (isOwnMsg) 
+	        {
+	            StyleConstants.setAlignment(imageAlignment, StyleConstants.ALIGN_RIGHT);
+	        } 
+	        else
+	        {
+	            StyleConstants.setAlignment(imageAlignment, StyleConstants.ALIGN_LEFT);
+	        }
+	        // 이미지 표시
+	        int start = doc.getLength();
+	        doc.insertString(start, " ", ImageAttributes);
+	        doc.setParagraphAttributes(start, doc.getLength() - start, imageAlignment, false);
+	        
+	        doc.insertString(doc.getLength(), "\n", null);
+	        appendText("\n", false);
+	        
+	        SwingUtilities.invokeLater(() -> {
+	        	chatTextArea.setCaretPosition(doc.getLength());
+	        });
+
+	    } catch (BadLocationException e) {
+	        e.printStackTrace();
+	    }
+	}
+	
 	public void addImageToChat(String imagePath) {
 	    try {
 	        ImageIcon imageIcon = new ImageIcon(imagePath);

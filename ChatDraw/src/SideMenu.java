@@ -1,8 +1,13 @@
-import javax.swing.*;
 import java.awt.Color;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class SideMenu extends JPanel {
     private String inputId;
@@ -61,8 +66,12 @@ public class SideMenu extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+        	Point currentLocation = getLocationOnScreen();
+        	
             UserList userList = new UserList(inputId);
+            userList.setLocation(currentLocation);
             userList.setVisible(true);
+            
             parentFrame.dispose();  
         }
     }
@@ -79,8 +88,12 @@ public class SideMenu extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+        	Point currentLocation = getLocationOnScreen();
+        	
             ChatList chatList = new ChatList(inputId, loginName);
+            chatList.setLocation(currentLocation);
             chatList.setVisible(true);
+            
             parentFrame.dispose();  
         }
     }
@@ -97,7 +110,10 @@ public class SideMenu extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+        	Point currentLocation = getLocationOnScreen();
+        	
             NewsBot newsBot = new NewsBot(inputId, loginName);
+            newsBot.setLocation(currentLocation);
             newsBot.setVisible(true);
         }
     }
