@@ -111,6 +111,7 @@ public class ChatServer extends JFrame {
 	class UserThread extends Thread 
 	{
 		private Socket clientSocket;
+		private String userName;
 		private DataInputStream dis;
 		private DataOutputStream dos;
 		private Vector<UserThread> user_vc;
@@ -162,6 +163,15 @@ public class ChatServer extends JFrame {
 
 		public void run() 
 		{
+            // 클라이언트로부터 사용자 이름을 먼저 받음
+            try {
+				userName = dis.readUTF();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}  // 클라이언트가 전송한 사용자 이름 받기
+            String connectMessage = "-" + userName + "님이 접속하였습니다. -"; // 접속 메시지
+            WriteAll(connectMessage); // 모든 클라이언트에게 메시지 전송
+            appendText("현재 참가자 수: " + UserVec.size() + "\n");
 		    while (true) 
 		    {
 		        try {
@@ -185,13 +195,14 @@ public class ChatServer extends JFrame {
 		            } 
 		            else 
 		            {
-		                WriteAll(msg + "\n");
+		            	handleClientMessage(msg); 
 		            }
 		        } 
-		        catch (Exception e) 
+		        catch (IOException e) 
 		        {
 		            UserVec.remove(this);
-		            appendText("UserName " + "퇴장. 현재 참가자 수 " + UserVec.size() + "\n");
+		            appendText(userName + "퇴장. 현재 참가자 수 " + UserVec.size() + "\n");
+		            WriteAll("- " + userName + "님이 퇴장하였습니다. -");
 		            try 
 		            {
 		                dos.close();
@@ -206,6 +217,15 @@ public class ChatServer extends JFrame {
 		        }
 		    }
 		}
+		
+		private void handleClientMessage(String message) throws IOException {
+		    if (message.equals("START_GAME")) {
+		        WriteAll("START_GAME"); // 모든 클라이언트에게 게임 시작 신호 전송
+		    } else {
+		        WriteAll(message); // 일반 메시지 전송
+		    }
+		}
+
 	}
 
 	// gui
