@@ -57,10 +57,10 @@ public class LoginUI extends JFrame {
                 super.paintComponent(g);
                 ImageIcon icon = new ImageIcon("src/images/logo.png");
                 Image logo = icon.getImage();
-
+                
                 // 이미지 크기 조절
-                int imageWidth = 200;
-                int imageHeight = 200;
+                int imageWidth = 172;
+                int imageHeight = 285;
                 
                 Image scaledLogo = logo.getScaledInstance(imageWidth, imageHeight, Image.SCALE_SMOOTH);
                 ImageIcon scaledIcon = new ImageIcon(scaledLogo);
@@ -70,7 +70,8 @@ public class LoginUI extends JFrame {
                 g.drawImage(scaledIcon.getImage(), x, y, this);
             }
         };
-        contentPane.setBackground(SystemColor.window);
+        //contentPane.setBackground(SystemColor.window);
+        contentPane.setBackground(new Color(131, 179, 251));
         setContentPane(contentPane);
         contentPane.setLayout(null);
 

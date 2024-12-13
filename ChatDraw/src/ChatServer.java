@@ -190,7 +190,7 @@ public class ChatServer extends JFrame {
 		        } 
 		        catch (Exception e) 
 		        {
-		            UserVec.removeElement(this);
+		            UserVec.remove(this);
 		            appendText("UserName " + "퇴장. 현재 참가자 수 " + UserVec.size() + "\n");
 		            try 
 		            {
