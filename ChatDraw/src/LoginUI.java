@@ -70,7 +70,6 @@ public class LoginUI extends JFrame {
                 g.drawImage(scaledIcon.getImage(), x, y, this);
             }
         };
-        //contentPane.setBackground(SystemColor.window);
         contentPane.setBackground(new Color(131, 179, 251));
         setContentPane(contentPane);
         contentPane.setLayout(null);

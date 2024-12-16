@@ -61,6 +61,7 @@ public class ChatClient extends JFrame {
 	private String inputId;
     private String loginName;
     private JFrame parentFrame;
+    boolean isGameOn = false;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -109,7 +110,7 @@ public class ChatClient extends JFrame {
 			e.printStackTrace();
 			appendText("connect error", false);
 		}
-
+		//대화 창 불러오기
 		loadChatHistory(roomName, userName);
 		
 		// 창 닫을 때 퇴장 메시지 전송
@@ -134,9 +135,9 @@ public class ChatClient extends JFrame {
 	    for (ChatMessage chatMessage : chatHistory) {
 	        String sender = chatMessage.getSender();
 	        String content = chatMessage.getContent();
-	        System.out.println(sender);
-	        System.out.println(content);
-	        System.out.println(chatMessage.getFormattedTimestamp());
+	        //System.out.println(sender);
+	        //System.out.println(content);
+	        //System.out.println(chatMessage.getFormattedTimestamp());
 
 	        if (content.contains(".jpg") || content.contains(".png") || content.contains(".jpeg")) {
 	            addImageToChat(content); // 이미지 표시
@@ -175,7 +176,6 @@ public class ChatClient extends JFrame {
 	    JLabel roomNameLabel = new JLabel(roomName);
 	    roomNameLabel.setBounds(10, 20, 340, 30);
 	    roomNameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 15));
-	    //roomNameLabel.setHorizontalAlignment(SwingConstants.CENTER); // 중앙 정렬
 	    roomNameLabel.setForeground(Color.WHITE);
 	    topPanel.add(roomNameLabel); // 패널에 추가
 	}
@@ -204,7 +204,7 @@ public class ChatClient extends JFrame {
 	    contentPane.add(chatScrollPane);
 	}
 
-
+	//사용자가 메시지 입력하는 공간
 	private void TextPanel() 
 	{
 		scrollPane = new JScrollPane();
@@ -248,7 +248,7 @@ public class ChatClient extends JFrame {
 			}
 		});
 	}
-
+	//전송 버튼
 	private void sendPanel() 
 	{
 		panel = new JPanel();
@@ -266,13 +266,13 @@ public class ChatClient extends JFrame {
 		// 이미지 크기 조정
 		ImageIcon fileIcon = new ImageIcon(ChatClient.class.getResource("/images/icon_folder.png"));
 		Image originalImage = fileIcon.getImage();
-		Image resizedFileImage = originalImage.getScaledInstance(45, 40, Image.SCALE_SMOOTH); // 새로운 크기 설정
+		Image resizedFileImage = originalImage.getScaledInstance(45, 40, Image.SCALE_SMOOTH);
 		ImageIcon resizedFileIcon = new ImageIcon(resizedFileImage);
 		fileButton.setIcon(resizedFileIcon);
 		
-		fileButton.setBounds(111, 0, 40, 40); // 버튼 크기와 위치도 조정
+		fileButton.setBounds(111, 0, 40, 40);
 		panel.add(fileButton);
-
+		//파일 전송
 		fileButton.addActionListener(new ActionListener() {
 		    @Override
 		    public void actionPerformed(ActionEvent e)
@@ -337,6 +337,7 @@ public class ChatClient extends JFrame {
 		    }
 		});
 		
+		//메시지 전송 버튼
 		sendButton = new JButton();
 		sendButton.setFocusPainted(false);
 		sendButton.setBorderPainted(false);
@@ -359,7 +360,7 @@ public class ChatClient extends JFrame {
 		sendButton.setBounds(300, 8, 50, 25);
 		panel.add(sendButton);
 		
-		// 게임 버튼 추가
+		// 게임 버튼
 		JButton gameButton = new JButton("");
 		ImageIcon gameIcon = new ImageIcon(ChatClient.class.getResource("/images/game.png"));
 		Image gameImg = gameIcon.getImage();
@@ -380,8 +381,9 @@ public class ChatClient extends JFrame {
 		        // 서버로 게임 시작 명령 전송
 		        try {
 		            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-		            dos.writeUTF("START_GAME");
+		            dos.writeUTF("-START_GAME-");
 		            dos.flush();
+		            isGameOn = true;  // 게임 시작 상태로 변경
 		        } catch (IOException ex) {
 		            ex.printStackTrace();
 		        }
@@ -426,8 +428,8 @@ public class ChatClient extends JFrame {
 	    SimpleAttributeSet attributes = new SimpleAttributeSet();
 
 	    // 글꼴 크기와 굵기 설정
-	    int fontSize = 13; // 글꼴 크기 설정
-	    boolean isBold = true; // Bold 설정
+	    int fontSize = 13;
+	    boolean isBold = true;
 
 	    // 본인이 보낸 메시지인지 확인
 	    if (isOwnMessage) {
@@ -540,7 +542,11 @@ public class ChatClient extends JFrame {
 	{
 		try 
 		{
-			dos.writeUTF(msg);
+			if (isGameOn) {	//게임 상태면 메시지 앞에 "-ANSWER-" 추가하여 보냄
+				dos.writeUTF("-ANSWER-" + msg);
+            } else {	//일반 메시지
+                dos.writeUTF(msg);
+            }
 		} 
 		catch (IOException e) 
 		{
@@ -595,7 +601,11 @@ public class ChatClient extends JFrame {
 
 	                    // 이미지 표시
 	                    addImage(tempFile.getAbsolutePath(), sender);
-	                } else {
+	                } else if (msg.contains("-START_GAME-")) {
+	                    isGameOn = true;
+	                } else if (msg.contains("-채팅모드로 돌아갑니다.-")) {
+	                    isGameOn = false;
+	                } else {	
 	                	if (!isOwnMessage) {
 	                        appendText(msg, false); // 화면 출력
 	                    }
@@ -727,7 +737,7 @@ public class ChatClient extends JFrame {
 	        // 줄바꿈 추가
 	        doc.insertString(doc.getLength(), "\n", null);
 
-	     // DB에 이미지 경로 저장
+	        // DB에 이미지 경로 저장
 	        //String message = String.format("[%s]\n이미지: %s\n", userName, imagePath);
 	        //DBManager.saveChatHistory(roomName, message, imagePath);
 	        
@@ -735,26 +745,6 @@ public class ChatClient extends JFrame {
 	    } catch (BadLocationException e) {
 	        e.printStackTrace();
 	    }
-	}
-	
-	private void listenForMessages() {
-	    new Thread(() -> {
-	        try {
-	            while (true) {
-	                String message = dis.readUTF();
-	                if (message.equals("START_GAME")) {
-	                    SwingUtilities.invokeLater(() -> {
-	                        new StartScreen().setVisible(true); // 게임 화면 실행
-	                    });
-	                } else {
-	                    // 기존 채팅 메시지 처리
-	                	appendText(message+"\n", false);
-	                }
-	            }
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-	    }).start();
 	}
 
 }
