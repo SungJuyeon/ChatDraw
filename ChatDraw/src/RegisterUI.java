@@ -64,8 +64,8 @@ public class RegisterUI extends JFrame {
                 ImageIcon icon = new ImageIcon("src/images/logo.png");
                 Image image = icon.getImage();
 
-                int imageWidth = 200;
-                int imageHeight = 200;
+                int imageWidth = 172;
+                int imageHeight = 285;
                 Image scaledImage = image.getScaledInstance(imageWidth, imageHeight, Image.SCALE_SMOOTH);
                 ImageIcon scaledIcon = new ImageIcon(scaledImage);
 
@@ -74,7 +74,7 @@ public class RegisterUI extends JFrame {
                 g.drawImage(scaledIcon.getImage(), x, y, this);
             }
         };
-        contentPane.setBackground(UIManager.getColor("window"));
+        contentPane.setBackground(new Color(131, 179, 251));
         setContentPane(contentPane);
         contentPane.setLayout(null);
 
