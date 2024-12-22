@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,7 +47,7 @@ public class LoginUI extends JFrame {
         setTitle("");
         setSize(373, 675);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 373, 675);
+        setSize(373, 675);
         JPanel contentPane = new JPanel() {
 			private static final long serialVersionUID = 1L;
 
@@ -56,10 +57,10 @@ public class LoginUI extends JFrame {
                 super.paintComponent(g);
                 ImageIcon icon = new ImageIcon("src/images/logo.png");
                 Image logo = icon.getImage();
-
+                
                 // 이미지 크기 조절
-                int imageWidth = 200;
-                int imageHeight = 200;
+                int imageWidth = 172;
+                int imageHeight = 285;
                 
                 Image scaledLogo = logo.getScaledInstance(imageWidth, imageHeight, Image.SCALE_SMOOTH);
                 ImageIcon scaledIcon = new ImageIcon(scaledLogo);
@@ -69,7 +70,7 @@ public class LoginUI extends JFrame {
                 g.drawImage(scaledIcon.getImage(), x, y, this);
             }
         };
-        contentPane.setBackground(SystemColor.window);
+        contentPane.setBackground(new Color(131, 179, 251));
         setContentPane(contentPane);
         contentPane.setLayout(null);
 
@@ -138,8 +139,12 @@ public class LoginUI extends JFrame {
                 {
                     try 
                     {
+                    	Point currentLocation = getLocationOnScreen();
+                    	
                         UserList frame = new UserList(inputId); 
+                        frame.setLocation(currentLocation);
                         frame.setVisible(true);
+                        
                         dispose();
                     } 
                     catch (Exception e) 
@@ -162,9 +167,13 @@ public class LoginUI extends JFrame {
             {
                 try 
                 {
+                	Point currentLocation = getLocationOnScreen();
+                	
                     RegisterUI joinFrame = new RegisterUI();
-                    dispose();
+                    joinFrame.setLocation(currentLocation);
                     joinFrame.setVisible(true);
+                    
+                    dispose();
                 } 
                 catch (Exception e) 
                 {
